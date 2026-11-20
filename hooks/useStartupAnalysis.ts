@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type {
-  AnalysisInput,
-  StartupReport,
-  UsageQuotaInfo,
+import { z } from "zod";
+import {
+  StartupReportSchema,
+  type AnalysisInput,
+  type StartupReport,
+  type UsageQuotaInfo,
 } from "@/lib/types";
 import { useAgentStream } from "./useAgentStream";
 
@@ -117,8 +119,11 @@ export function useStartupAnalysis() {
       try {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
-          const parsed = JSON.parse(saved) as StartupReport[];
-          if (Array.isArray(parsed)) setHistory(parsed);
+          const raw = JSON.parse(saved);
+          const parsed = z.array(StartupReportSchema).safeParse(raw);
+          if (parsed.success) {
+            setHistory(parsed.data);
+          }
         }
       } catch {
         // Ignore corrupt localStorage

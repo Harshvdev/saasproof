@@ -7,6 +7,13 @@ interface CompetitorsTabProps {
   visible: boolean;
 }
 
+/**
+ * CompetitorsTab displays the competitor landscape matrix, threat ratings, verified URLs,
+ * live pricing models, feature gaps, and the identified white-space opportunity.
+ *
+ * @param props - CompetitorsTabProps with competitor intel output and visibility state.
+ * @returns Fully rendered competitor analysis tabpanel.
+ */
 export function CompetitorsTab({ competitors, visible }: CompetitorsTabProps) {
   return (
     <div

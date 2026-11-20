@@ -9,38 +9,39 @@ interface SensitivityCalculatorProps {
   initialChurnPct?: number;
 }
 
+export interface UnitEconomicsMetrics {
+  churnDecimal: number;
+  ltv: number;
+  ltvCacRatio: number;
+  paybackMonths: number;
+  annualRevPer100: string;
+  statusTier: {
+    label: string;
+    badgeCls: string;
+    color: string;
+    summary: string;
+  };
+}
+
 /**
- * Interactive Unit Economics & Sensitivity Simulator.
- * Provides live recalculation of LTV, LTV/CAC ratio, payback months,
- * and a dynamic SVG sensitivity chart with accessible sliders.
+ * Calculates deterministic unit economics and venture viability tiers.
+ *
+ * @param arpu - Average Revenue Per User/Account per month in USD.
+ * @param cac - Customer Acquisition Cost in USD.
+ * @param churnPct - Monthly churn rate as a percentage (e.g. 4.0 for 4%).
+ * @returns Computed metrics including LTV, LTV/CAC ratio, payback period, and status classification.
  */
-export function SensitivityCalculator({
-  initialArpu = 49,
-  initialCac = 140,
-  initialChurnPct = 4.0,
-}: SensitivityCalculatorProps) {
-  const arpuId = useId();
-  const churnId = useId();
-  const cacId = useId();
-
-  const [arpu, setArpu] = useState(initialArpu);
-  const [churnPct, setChurnPct] = useState(initialChurnPct);
-  const [cac, setCac] = useState(initialCac);
-
-  // Derived unit economic formulas
+export function calculateUnitEconomics(
+  arpu: number,
+  cac: number,
+  churnPct: number
+): UnitEconomicsMetrics {
   const churnDecimal = Math.max(0.005, churnPct / 100);
   const ltv = Math.round(arpu / churnDecimal);
   const ltvCacRatio = Number((ltv / Math.max(1, cac)).toFixed(1));
   const paybackMonths = Number((cac / Math.max(1, arpu)).toFixed(1));
   const annualRevPer100 = (arpu * 12 * 100).toLocaleString();
 
-  const handleReset = () => {
-    setArpu(initialArpu);
-    setChurnPct(initialChurnPct);
-    setCac(initialCac);
-  };
-
-  // Status classification
   const statusTier =
     ltvCacRatio >= 3.0
       ? {
@@ -62,6 +63,51 @@ export function SensitivityCalculator({
             color: "var(--rose-text)",
             summary: "LTV is too close to CAC. Organic referral or price increases required.",
           };
+
+  return {
+    churnDecimal,
+    ltv,
+    ltvCacRatio,
+    paybackMonths,
+    annualRevPer100,
+    statusTier,
+  };
+}
+
+/**
+ * Interactive Unit Economics & Sensitivity Simulator.
+ * Provides live recalculation of LTV, LTV/CAC ratio, payback months,
+ * and a dynamic SVG sensitivity chart with accessible sliders.
+ *
+ * @param props - SensitivityCalculatorProps with initial ARPU, CAC, and Churn values.
+ * @returns Fully rendered interactive domain calculator panel.
+ */
+export function SensitivityCalculator({
+  initialArpu = 49,
+  initialCac = 140,
+  initialChurnPct = 4.0,
+}: SensitivityCalculatorProps) {
+  const arpuId = useId();
+  const churnId = useId();
+  const cacId = useId();
+
+  const [arpu, setArpu] = useState(initialArpu);
+  const [churnPct, setChurnPct] = useState(initialChurnPct);
+  const [cac, setCac] = useState(initialCac);
+
+  const {
+    ltv,
+    ltvCacRatio,
+    paybackMonths,
+    annualRevPer100,
+    statusTier,
+  } = calculateUnitEconomics(arpu, cac, churnPct);
+
+  const handleReset = () => {
+    setArpu(initialArpu);
+    setChurnPct(initialChurnPct);
+    setCac(initialCac);
+  };
 
   return (
     <div

@@ -2,16 +2,25 @@
 
 [![Next.js 16](https://img.shields.io/badge/Next.js-16.4.6-black)](https://nextjs.org)
 [![Bun](https://img.shields.io/badge/Runtime-Bun%201.3-orange)](https://bun.com)
-[![Tests](https://img.shields.io/badge/Tests-52%20Passed-success)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-62%20Passed-success)](tests/)
+[![Track](https://img.shields.io/badge/Track-PS08%3A%20Startup%20Co--Pilot-blue)](https://hack2skill.com)
 
-> **Repository:** [https://github.com/Harshvdev/saasproof](https://github.com/Harshvdev/saasproof)
+> **Repository:** [https://github.com/Harshvdev/saasproof](https://github.com/Harshvdev/saasproof)  
+> **Challenge Alignment:** PS08: Startup Co-Pilot — Autonomous Market Sizing, Competitor Intel, Mom-Test Discovery, Unit Economics Sensitivity Modeling & 90-Day MVP Roadmaps.
 
 ---
 
-## Why This Matters
-Over 90% of early-stage startups fail because they build something nobody wants or enter crowded markets with fatally flawed unit economics. Founders suffer from confirmation bias and spend months building MVPs before performing rigorous customer discovery or competitor benchmarking.
+## Problem Statement Alignment & Root Challenge
 
-SaaSProof acts as an unsparing, highly analytical AI Co-Pilot that turns raw, unstructured founder ideas into an exhaustive, battle-tested validation dossier backed by real-time web research in under 60 seconds.
+### The Root Challenge
+Over 90% of early-stage startups fail because they build something nobody wants or enter crowded markets with fatally flawed unit economics. Founders suffer from confirmation bias and spend months building MVPs before performing rigorous customer discovery, willingness-to-pay benchmarking, or unit economics stress-testing.
+
+### Target User Needs
+1. **Critical Objective Feedback:** Replacing polite false positives with blunt Devil's Advocate viability scoring across 5 rigorous dimensions.
+2. **Grounded Market Reality:** Bottom-up TAM/SAM/SOM market sizing backed by live web citations rather than generic LLM hallucinations.
+3. **Willingness-to-Pay Verification:** Dual-sided ICP personas and 5 non-leading discovery questions based on *The Mom Test*.
+4. **Interactive Viability Modeling:** Real-time Unit Economics & Sensitivity Simulator to stress-test LTV, CAC, and churn payback thresholds before spending capital.
+5. **Continuous Strategic Advisory:** An interactive, context-aware Co-Pilot workspace retaining full dossier memory for iterative pivot and GTM exploration.
 
 ---
 

@@ -13,6 +13,13 @@ interface MarketTabProps {
   visible: boolean;
 }
 
+/**
+ * MarketTab renders bottom-up TAM/SAM/SOM market sizing cards, 3-year outlook,
+ * CAGR growth trends, and macro tailwinds and headwinds with source citations.
+ *
+ * @param props - MarketTabProps with market analyst output and visibility state.
+ * @returns Fully rendered market sizing tabpanel.
+ */
 export function MarketTab({ market, visible }: MarketTabProps) {
   return (
     <div

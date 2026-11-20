@@ -17,7 +17,16 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "SaaSProof — Build products people pay for",
   description:
-    "Validate your startup idea with real market data, competitor analysis, customer insights, risk assessment and a 90-day roadmap — in ~60s.",
+    "AI Startup Co-Pilot that validates business ideas with live web research, bottom-up TAM/SAM/SOM sizing, competitor whitespace analysis, Mom-Test customer discovery, unit economics sensitivity modeling, and 90-day roadmaps in ~60s.",
+  keywords: [
+    "Startup Co-Pilot",
+    "Idea Validation",
+    "TAM SAM SOM",
+    "Competitor Analysis",
+    "Mom Test",
+    "Unit Economics Simulator",
+    "Founder Tools",
+  ],
 };
 
 export default function RootLayout({

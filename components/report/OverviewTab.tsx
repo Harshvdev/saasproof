@@ -9,6 +9,13 @@ interface OverviewTabProps {
   visible: boolean;
 }
 
+/**
+ * OverviewTab renders the primary executive scorecard, 5-axis viability breakdown,
+ * critical risk mitigations, strategic pivots, and the interactive unit economics simulator.
+ *
+ * @param props - OverviewTabProps containing validator agent findings and visibility state.
+ * @returns Fully rendered executive overview tabpanel.
+ */
 export function OverviewTab({ validator, visible }: OverviewTabProps) {
   return (
     <div

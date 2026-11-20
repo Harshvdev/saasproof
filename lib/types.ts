@@ -184,26 +184,28 @@ export interface UsageQuotaInfo {
   resetWindowHours: number;
 }
 
-export interface StartupReport {
-  id: string;
-  createdAt: string;
-  isPreset?: boolean;
-  input: AnalysisInput;
-  framer: FramerOutput;
-  market: MarketOutput;
-  competitors: CompetitorOutput;
-  customers: CustomerOutput;
-  validator: ValidatorOutput;
-  planner: PlannerOutput;
-  telemetry: {
-    durationMs: number;
-    llmProviderUsed: string;
-    tinySearchCalls: number;
-    tinyFetchCalls: number;
-    tinyAgentUsed: boolean;
-    tinyAgentFallbackReason?: string;
-  };
-}
+export const StartupReportSchema = z.object({
+  id: z.string(),
+  createdAt: z.string(),
+  isPreset: z.boolean().optional(),
+  input: AnalysisInputSchema,
+  framer: FramerOutputSchema,
+  market: MarketOutputSchema,
+  competitors: CompetitorOutputSchema,
+  customers: CustomerOutputSchema,
+  validator: ValidatorOutputSchema,
+  planner: PlannerOutputSchema,
+  telemetry: z.object({
+    durationMs: z.number(),
+    llmProviderUsed: z.string(),
+    tinySearchCalls: z.number(),
+    tinyFetchCalls: z.number(),
+    tinyAgentUsed: z.boolean(),
+    tinyAgentFallbackReason: z.string().optional(),
+  }),
+});
+
+export type StartupReport = z.infer<typeof StartupReportSchema>;
 
 export type AgentNodeId =
   | "framer"
@@ -229,8 +231,33 @@ export type AgentSSEEvent =
     }
   | {
       type: "partial";
-      section: "framer" | "market" | "competitors" | "customers" | "validator" | "planner";
-      data: unknown;
+      section: "framer";
+      data: FramerOutput;
+    }
+  | {
+      type: "partial";
+      section: "market";
+      data: MarketOutput;
+    }
+  | {
+      type: "partial";
+      section: "competitors";
+      data: CompetitorOutput;
+    }
+  | {
+      type: "partial";
+      section: "customers";
+      data: CustomerOutput;
+    }
+  | {
+      type: "partial";
+      section: "validator";
+      data: ValidatorOutput;
+    }
+  | {
+      type: "partial";
+      section: "planner";
+      data: PlannerOutput;
     }
   | {
       type: "complete";

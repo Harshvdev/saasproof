@@ -6,6 +6,13 @@ interface RoadmapTabProps {
   visible: boolean;
 }
 
+/**
+ * RoadmapTab displays the 90-day phased execution plan (Days 1–30, 31–60, 61–90),
+ * recommended launch wedge, MVP feature scoping (Must-Build vs Skip), and first 10 customers playbook.
+ *
+ * @param props - RoadmapTabProps with execution planner output and visibility state.
+ * @returns Fully rendered 90-day execution roadmap tabpanel.
+ */
 export function RoadmapTab({ planner, visible }: RoadmapTabProps) {
   return (
     <div

@@ -48,6 +48,14 @@ function formatSearchContext(hits: SearchHit[], pages: FetchedPage[]): string {
   return combined.slice(0, 5200);
 }
 
+/**
+ * Orchestrates the full 3-stage, 6-agent startup validation pipeline.
+ * Executes Stage 1 (Framing), Stage 2 (Parallel Market, Competitor, Customer, Risk specialists),
+ * and Stage 3 (Execution Planner), emitting real-time Server-Sent Events (SSE).
+ *
+ * @param opts - Pipeline execution options including AnalysisInput, deep scraping allowance, and emit callback.
+ * @returns Complete, grounded StartupReport object with verified citations and telemetry.
+ */
 export async function runStartupPipeline(opts: {
   input: AnalysisInput;
   allowDeepScrape: boolean;

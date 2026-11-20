@@ -2,6 +2,13 @@ interface LoadingBlockProps {
   message: string;
 }
 
+/**
+ * LoadingBlock renders a clean, accessible loading placeholder with animated spinner
+ * and status messaging while asynchronous agent tasks complete.
+ *
+ * @param props - LoadingBlockProps with status message text.
+ * @returns Fully rendered loading card.
+ */
 export function LoadingBlock({ message }: LoadingBlockProps) {
   return (
     <div className="panel-card" style={{ textAlign: "center", padding: "48px 24px" }}>

@@ -16,7 +16,7 @@ import {
   Users,
   Zap,
 } from "lucide-react";
-import type { AnalysisInput, StartupReport } from "@/lib/types";
+import { AnalysisInputSchema, type AnalysisInput, type StartupReport } from "@/lib/types";
 import { DEMO_PRESETS } from "@/lib/presets";
 import { ResearchSnapshot } from "./landing/ResearchSnapshot";
 import { ExampleReportsSection } from "./landing/ExampleReportsSection";
@@ -217,11 +217,15 @@ export function LandingPage({
                     id={modelId}
                     className="lp-select"
                     value={businessModel}
-                    onChange={(event) =>
-                      setBusinessModel(
-                        event.target.value as AnalysisInput["businessModel"]
-                      )
-                    }
+                    onChange={(event) => {
+                      const parsed =
+                        AnalysisInputSchema.shape.businessModel.safeParse(
+                          event.target.value
+                        );
+                      if (parsed.success) {
+                        setBusinessModel(parsed.data);
+                      }
+                    }}
                   >
                     {BUSINESS_MODELS.map((item) => (
                       <option key={item} value={item}>
@@ -238,6 +242,7 @@ export function LandingPage({
 
             <div className="lp-deep">
               <button
+                id="lp-deep-scrape-switch"
                 type="button"
                 className="lp-switch"
                 role="switch"
@@ -246,8 +251,8 @@ export function LandingPage({
                 onClick={() => setEnableDeepScrape((value) => !value)}
               />
               <label
+                htmlFor="lp-deep-scrape-switch"
                 className="lp-deep-label"
-                onClick={() => setEnableDeepScrape((value) => !value)}
                 title="Uses TinyFish deep web browser extraction to analyze actual competitor pricing, features, and landing page claims."
               >
                 <span>Deep Search</span>

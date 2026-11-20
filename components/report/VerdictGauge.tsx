@@ -3,6 +3,13 @@ interface VerdictGaugeProps {
   badge: string;
 }
 
+/**
+ * VerdictGauge renders an SVG circular progress indicator displaying the overall 0-100 viability score
+ * and color-coded status badge.
+ *
+ * @param props - VerdictGaugeProps with numerical score and badge string.
+ * @returns Fully rendered SVG score gauge.
+ */
 export function VerdictGauge({ score, badge }: VerdictGaugeProps) {
   const radius = 72;
   const circumference = 2 * Math.PI * radius;

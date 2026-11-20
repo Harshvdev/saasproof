@@ -9,6 +9,13 @@ interface CustomersTabProps {
   onShowToast: (msg: string) => void;
 }
 
+/**
+ * CustomersTab renders dual-sided customer personas, pain points, current workarounds,
+ * willingness to pay, and the 5 Mom-Test discovery interview script with one-click clipboard copying.
+ *
+ * @param props - CustomersTabProps containing customer profiles, visibility, and toast handler.
+ * @returns Fully rendered customer discovery tabpanel.
+ */
 export function CustomersTab({
   customers,
   visible,

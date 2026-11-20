@@ -22,6 +22,13 @@ interface NavbarProps {
   onResetToHero: () => void;
 }
 
+/**
+ * Top navigation bar featuring brand identity, quota indicators, history drawer triggers,
+ * theme toggle, and instant 'New Idea' quick action.
+ *
+ * @param props - NavbarProps containing user quotas, theme, and navigation callbacks.
+ * @returns Fully rendered header and navigation component.
+ */
 export function Navbar({
   quota,
   historyCount,
@@ -76,12 +83,22 @@ export function Navbar({
             <span>Validate</span>
           </button>
 
-          <button type="button" className="lp-nav-link" onClick={onOpenHistory}>
+          <button
+            type="button"
+            className="lp-nav-link"
+            onClick={onOpenHistory}
+            aria-label="Open report history"
+          >
             <Clock3 aria-hidden="true" />
             <span>History</span>
           </button>
 
-          <button type="button" className="lp-nav-link" onClick={onOpenHistory}>
+          <button
+            type="button"
+            className="lp-nav-link"
+            onClick={onOpenHistory}
+            aria-label={`Saved reports (${historyCount})`}
+          >
             <Bookmark aria-hidden="true" />
             <span>Saved</span>
             {historyCount > 0 && (
@@ -137,7 +154,12 @@ export function Navbar({
             )}
           </button>
 
-          <button type="button" className="lp-new-idea" onClick={handleNewIdea}>
+          <button
+            type="button"
+            className="lp-new-idea"
+            onClick={handleNewIdea}
+            aria-label="Create new startup idea analysis"
+          >
             <Plus aria-hidden="true" />
             <span>New Idea</span>
           </button>

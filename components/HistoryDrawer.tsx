@@ -13,6 +13,13 @@ interface HistoryDrawerProps {
   onDeleteReport: (id: string) => void;
 }
 
+/**
+ * HistoryDrawer displays previously saved validation dossiers from browser storage
+ * within an accessible modal dialog conforming to WAI-ARIA dialog standards.
+ *
+ * @param props - HistoryDrawerProps with reports array and selection/deletion handlers.
+ * @returns Fully rendered accessible history drawer dialog.
+ */
 export function HistoryDrawer({
   open,
   reports,

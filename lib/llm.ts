@@ -17,7 +17,13 @@ const groqCooldownUntil = new Map<string, number>();
 let groqPoolCache: { apiKey: string; models: string[]; until: number } | null = null;
 let groqCursor = 0;
 
-function extractJsonText(raw: string): string {
+/**
+ * Sanitizes and extracts JSON substring from raw LLM responses, stripping markdown code fences.
+ *
+ * @param raw - The raw text output from an LLM model which may contain markdown code fences.
+ * @returns Clean string ready for JSON parsing.
+ */
+export function extractJsonText(raw: string): string {
   const trimmed = raw.trim();
   const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fenced?.[1]) {

@@ -55,6 +55,14 @@ const NODE_ICONS: Record<AgentNodeId, React.ElementType> = {
   planner: CalendarCheck,
 };
 
+/**
+ * AgentMissionControl provides a live terminal visualization of the autonomous multi-agent pipeline.
+ * Displays real-time status badges, live search queries, fetched sources, pause/resume controls,
+ * and an estimated progress timeline.
+ *
+ * @param props - AgentMissionControlProps containing active nodes, streaming state, and pause controls.
+ * @returns Fully rendered mission control progress interface.
+ */
 export function AgentMissionControl({
   ideaText,
   startupTitle,

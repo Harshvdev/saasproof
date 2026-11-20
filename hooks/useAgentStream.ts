@@ -7,16 +7,15 @@ import type {
   AgentNodeId,
   AgentSSEEvent,
   AnalysisInput,
-  CompetitorOutput,
-  CustomerOutput,
-  FramerOutput,
-  MarketOutput,
-  PlannerOutput,
   StartupReport,
   UsageQuotaInfo,
-  ValidatorOutput,
 } from "@/lib/types";
 
+/**
+ * Generates the default initial node state mapping for all 6 autonomous agents.
+ *
+ * @returns Initial dictionary mapping each AgentNodeId to its pending state.
+ */
 export function createInitialNodes(): Record<AgentNodeId, AgentNodeState> {
   return {
     framer: {
@@ -125,18 +124,7 @@ export function useAgentStream({
       } else if (ev.type === "partial") {
         setPartial((prev) => ({
           ...prev,
-          [ev.section]:
-            ev.section === "framer"
-              ? (ev.data as FramerOutput)
-              : ev.section === "market"
-                ? (ev.data as MarketOutput)
-                : ev.section === "competitors"
-                  ? (ev.data as CompetitorOutput)
-                  : ev.section === "customers"
-                    ? (ev.data as CustomerOutput)
-                    : ev.section === "validator"
-                      ? (ev.data as ValidatorOutput)
-                      : (ev.data as PlannerOutput),
+          [ev.section]: ev.data,
         }));
       } else if (ev.type === "complete") {
         onQuotaUpdate(ev.quota);

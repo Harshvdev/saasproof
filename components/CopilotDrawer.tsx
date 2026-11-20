@@ -2,7 +2,24 @@
 
 import React, { useEffect, useId, useRef, useState } from "react";
 import { ArrowUpRight, Compass, Send, X } from "lucide-react";
+import { z } from "zod";
 import type { StartupReport, UsageQuotaInfo } from "@/lib/types";
+
+const CopilotResponseSchema = z.object({
+  answer: z.string().optional(),
+  provider: z.string().optional(),
+  sources: z
+    .array(
+      z.object({
+        title: z.string(),
+        url: z.string(),
+        domain: z.string(),
+      })
+    )
+    .optional(),
+  quota: z.custom<UsageQuotaInfo>().optional(),
+  error: z.string().optional(),
+});
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -37,6 +54,14 @@ const STARTERS = [
   },
 ];
 
+/**
+ * CopilotDrawer provides an interactive, context-aware AI advisory terminal.
+ * Preserves the full startup report dossier in memory to answer founder follow-up queries,
+ * draft cold outreach scripts, simulate pivot scenarios, and ground replies with live web data.
+ *
+ * @param props - CopilotDrawerProps containing dialog visibility, active report, and quota updates.
+ * @returns Fully rendered accessible co-pilot dialog drawer.
+ */
 export function CopilotDrawer({
   open,
   report,
@@ -86,17 +111,14 @@ export function CopilotDrawer({
         }),
       });
 
-      const data = (await res.json()) as {
-        answer?: string;
-        provider?: string;
-        sources?: Array<{ title: string; url: string; domain: string }>;
-        quota?: UsageQuotaInfo;
-        error?: string;
-      };
+      const rawJson: unknown = await res.json().catch(() => ({}));
+      const parsedRes = CopilotResponseSchema.safeParse(rawJson);
+      const data = parsedRes.success ? parsedRes.data : {};
 
       if (data.quota) onQuotaUpdate(data.quota);
 
-      if (!res.ok || !data.answer) {
+      const answerText = data.answer;
+      if (!res.ok || !answerText) {
         setError(data.error || "Unable to get a Co-Pilot reply right now.");
         return;
       }
@@ -105,7 +127,7 @@ export function CopilotDrawer({
         ...prev,
         {
           role: "assistant",
-          content: data.answer!,
+          content: answerText,
           provider: data.provider,
           sources: data.sources,
         },

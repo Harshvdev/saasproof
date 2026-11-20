@@ -6,11 +6,15 @@ describe("Accessibility Suite: WAI-ARIA Semantics & Structure Contracts", () => 
   const historyDrawerPath = resolve(__dirname, "../../components/HistoryDrawer.tsx");
   const copilotDrawerPath = resolve(__dirname, "../../components/CopilotDrawer.tsx");
   const reportWorkspacePath = resolve(__dirname, "../../components/ReportWorkspace.tsx");
+  const landingPagePath = resolve(__dirname, "../../components/LandingPage.tsx");
+  const sensitivityPath = resolve(__dirname, "../../components/report/SensitivityCalculator.tsx");
   const layoutPath = resolve(__dirname, "../../app/layout.tsx");
 
   const historyCode = readFileSync(historyDrawerPath, "utf-8");
   const copilotCode = readFileSync(copilotDrawerPath, "utf-8");
   const workspaceCode = readFileSync(reportWorkspacePath, "utf-8");
+  const landingCode = readFileSync(landingPagePath, "utf-8");
+  const sensitivityCode = readFileSync(sensitivityPath, "utf-8");
   const layoutCode = readFileSync(layoutPath, "utf-8");
 
   test("root layout provides valid document language and hydration structure", () => {
@@ -43,5 +47,19 @@ describe("Accessibility Suite: WAI-ARIA Semantics & Structure Contracts", () => 
     expect(workspaceCode).toContain('role="tab"');
     expect(workspaceCode).toContain("aria-controls={`panel-${tab.id}`}");
     expect(workspaceCode).toContain("aria-selected={selected}");
+  });
+
+  test("LandingPage links deep scrape toggle button to label via htmlFor", () => {
+    expect(landingCode).toContain('id="lp-deep-scrape-switch"');
+    expect(landingCode).toContain('htmlFor="lp-deep-scrape-switch"');
+    expect(landingCode).toContain('role="switch"');
+    expect(landingCode).toContain("aria-checked={enableDeepScrape}");
+  });
+
+  test("SensitivityCalculator conforms to accessible range slider contracts", () => {
+    expect(sensitivityCode).toContain('type="range"');
+    expect(sensitivityCode).toContain("aria-valuemin=");
+    expect(sensitivityCode).toContain("aria-valuemax=");
+    expect(sensitivityCode).toContain("aria-valuenow=");
   });
 });
