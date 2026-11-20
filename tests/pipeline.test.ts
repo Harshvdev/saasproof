@@ -29,7 +29,7 @@ import {
   setCachedCopilot,
 } from "../lib/cache";
 
-describe("PS08 Startup Co-Pilot: Input & Schema Validation", () => {
+describe("SaaSProof: Input & Schema Validation", () => {
   test("accepts a comprehensive valid startup idea input", () => {
     const validPayload = {
       idea: "An on-demand AI co-pilot that helps freelance designers run user testing interviews automatically.",
@@ -86,7 +86,7 @@ describe("PS08 Startup Co-Pilot: Input & Schema Validation", () => {
   });
 });
 
-describe("PS08 Startup Co-Pilot: Grounding & Citations", () => {
+describe("SaaSProof: Grounding & Citations", () => {
   test("deduplicates identical URLs and formats domain correctly", () => {
     const searchHits = [
       {
@@ -128,7 +128,7 @@ describe("PS08 Startup Co-Pilot: Grounding & Citations", () => {
   });
 });
 
-describe("PS08 Startup Co-Pilot: Rate Limiting & Resource Protection", () => {
+describe("SaaSProof: Rate Limiting & Resource Protection", () => {
   test("enforces analysis quota per user identifier", () => {
     const uniqueKey = `test_user_analysis_${Date.now()}`;
 
@@ -166,7 +166,7 @@ describe("PS08 Startup Co-Pilot: Rate Limiting & Resource Protection", () => {
   });
 });
 
-describe("PS08 Startup Co-Pilot: Output Schema Integrity & Report Export", () => {
+describe("SaaSProof: Output Schema Integrity & Report Export", () => {
   test("all bundled demo presets conform to strict output schemas", () => {
     expect(DEMO_PRESETS.length).toBeGreaterThan(0);
 
@@ -194,7 +194,7 @@ describe("PS08 Startup Co-Pilot: Output Schema Integrity & Report Export", () =>
   });
 });
 
-describe("PS08 Startup Co-Pilot: Performance & In-Memory Memoization", () => {
+describe("SaaSProof: Performance & In-Memory Memoization", () => {
   test("generates deterministic SHA-256 keys for identical inputs regardless of case or whitespace", () => {
     const inputA = {
       idea: "  Decentralized Compute Network for AI Training  ",

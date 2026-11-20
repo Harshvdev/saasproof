@@ -2,7 +2,7 @@ import type { UsageQuotaInfo } from "./types";
 
 const WINDOW_MS = 24 * 60 * 60 * 1000;
 
-// Generous enough for testing & live hackathon judging, strict enough to protect
+// Generous enough for testing, strict enough to protect
 // the $8 TinyFish wallet and free-tier Gemini/Groq RPM quotas.
 export const QUOTA_LIMITS = {
   analysesPerUser: 8,
