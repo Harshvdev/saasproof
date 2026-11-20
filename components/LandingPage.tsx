@@ -127,10 +127,9 @@ export function LandingPage({
         <div className="lp-hero-copy">
           <p className="lp-eyebrow">Startup idea validator</p>
           <h1 className="lp-h1">
-            Find the weak point
+            Build products
             <br />
-            <span className="lp-h1-accent">before</span> you{" "}
-            <span className="lp-h1-orange">build.</span>
+            people <span className="lp-h1-orange">pay for.</span>
           </h1>
           <p className="lp-sub">
             Validate your startup idea with real market data, competitor

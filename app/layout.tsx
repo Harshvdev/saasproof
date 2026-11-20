@@ -15,7 +15,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SaaSProof — Find the weak point before you build",
+  title: "SaaSProof — Build products people pay for",
   description:
     "Validate your startup idea with real market data, competitor analysis, customer insights, risk assessment and a 90-day roadmap — in ~60s.",
 };
