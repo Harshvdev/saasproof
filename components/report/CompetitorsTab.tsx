@@ -122,7 +122,7 @@ export function CompetitorsTab({ competitors, visible }: CompetitorsTabProps) {
 
                   <div className="comp-cols">
                     <div className="comp-mini-box">
-                      <h5 style={{ color: "var(--emerald-text)" }}>Strengths</h5>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--emerald-text)" }}>Strengths</h4>
                       <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "4px" }}>
                         {comp.strengths.map((s) => (
                           <li key={s}>• {s}</li>
@@ -130,7 +130,7 @@ export function CompetitorsTab({ competitors, visible }: CompetitorsTabProps) {
                       </ul>
                     </div>
                     <div className="comp-mini-box">
-                      <h5 style={{ color: "var(--orange-600)" }}>Gaps to Exploit</h5>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--orange-600)" }}>Gaps to Exploit</h4>
                       <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "4px" }}>
                         {comp.weaknessesOrGaps.map((g) => (
                           <li key={g}>→ {g}</li>

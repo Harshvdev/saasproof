@@ -2,7 +2,7 @@
 
 [![Next.js 16](https://img.shields.io/badge/Next.js-16.4.6-black)](https://nextjs.org)
 [![Bun](https://img.shields.io/badge/Runtime-Bun%201.3-orange)](https://bun.com)
-[![Tests](https://img.shields.io/badge/Tests-62%20Passed-success)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-71%20Passed-success)](tests/)
 [![Track](https://img.shields.io/badge/Track-PS08%3A%20Startup%20Co--Pilot-blue)](https://hack2skill.com)
 
 > **Repository:** [https://github.com/Harshvdev/saasproof](https://github.com/Harshvdev/saasproof)  
@@ -10,12 +10,16 @@
 
 ---
 
-## Problem Statement Alignment & Root Challenge
+## Why This Matters
 
-### The Root Challenge
+### Problem Statement Alignment & Root Challenge (PS08: Startup Co-Pilot)
+
+#### The Root Challenge
 Over 90% of early-stage startups fail because they build something nobody wants or enter crowded markets with fatally flawed unit economics. Founders suffer from confirmation bias and spend months building MVPs before performing rigorous customer discovery, willingness-to-pay benchmarking, or unit economics stress-testing.
 
-### Target User Needs
+SaaSProof acts as an unsparing, highly analytical AI Co-Pilot that turns raw, unstructured founder ideas into an exhaustive, battle-tested validation dossier backed by real-time web research in under 60 seconds.
+
+#### Target User Needs & Core Objectives
 1. **Critical Objective Feedback:** Replacing polite false positives with blunt Devil's Advocate viability scoring across 5 rigorous dimensions.
 2. **Grounded Market Reality:** Bottom-up TAM/SAM/SOM market sizing backed by live web citations rather than generic LLM hallucinations.
 3. **Willingness-to-Pay Verification:** Dual-sided ICP personas and 5 non-leading discovery questions based on *The Mom Test*.

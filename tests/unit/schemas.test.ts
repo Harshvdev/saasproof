@@ -9,7 +9,12 @@ import {
   PlannerOutputSchema,
   ValidatorOutputSchema,
 } from "../../lib/types";
-import { DEMO_PRESETS } from "../../lib/presets";
+import {
+  DEMO_PRESETS,
+  creatorSponsorshipPreset,
+  dentalCompliancePreset,
+  inspectSecondhandPreset,
+} from "../../lib/presets";
 
 describe("Unit Suite: Zod Schema Integrity & Validation Bounds", () => {
   test("AnalysisInputSchema enforces minimum length of 10 characters", () => {
@@ -61,5 +66,11 @@ describe("Unit Suite: Zod Schema Integrity & Validation Bounds", () => {
       expect(preset.validator.overallScore).toBeGreaterThanOrEqual(0);
       expect(preset.validator.overallScore).toBeLessThanOrEqual(100);
     }
+  });
+
+  test("individual modular presets export correctly and match IDs", () => {
+    expect(inspectSecondhandPreset.id).toBe("preset_inspect_secondhand");
+    expect(dentalCompliancePreset.id).toBe("preset_dental_compliance");
+    expect(creatorSponsorshipPreset.id).toBe("preset_creator_sponsorship");
   });
 });

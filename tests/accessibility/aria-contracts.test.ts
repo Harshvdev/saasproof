@@ -8,6 +8,7 @@ describe("Accessibility Suite: WAI-ARIA Semantics & Structure Contracts", () => 
   const reportWorkspacePath = resolve(__dirname, "../../components/ReportWorkspace.tsx");
   const landingPagePath = resolve(__dirname, "../../components/LandingPage.tsx");
   const sensitivityPath = resolve(__dirname, "../../components/report/SensitivityCalculator.tsx");
+  const competitorsPath = resolve(__dirname, "../../components/report/CompetitorsTab.tsx");
   const layoutPath = resolve(__dirname, "../../app/layout.tsx");
 
   const historyCode = readFileSync(historyDrawerPath, "utf-8");
@@ -15,6 +16,7 @@ describe("Accessibility Suite: WAI-ARIA Semantics & Structure Contracts", () => 
   const workspaceCode = readFileSync(reportWorkspacePath, "utf-8");
   const landingCode = readFileSync(landingPagePath, "utf-8");
   const sensitivityCode = readFileSync(sensitivityPath, "utf-8");
+  const competitorsCode = readFileSync(competitorsPath, "utf-8");
   const layoutCode = readFileSync(layoutPath, "utf-8");
 
   test("root layout provides valid document language and hydration structure", () => {
@@ -61,5 +63,12 @@ describe("Accessibility Suite: WAI-ARIA Semantics & Structure Contracts", () => 
     expect(sensitivityCode).toContain("aria-valuemin=");
     expect(sensitivityCode).toContain("aria-valuemax=");
     expect(sensitivityCode).toContain("aria-valuenow=");
+  });
+
+  test("CompetitorsTab maintains valid WCAG heading hierarchy without skipping levels", () => {
+    expect(competitorsCode).toContain("<h3");
+    expect(competitorsCode).toContain("<h4");
+    // Verify no skipped h5 headings
+    expect(competitorsCode).not.toContain("<h5");
   });
 });
