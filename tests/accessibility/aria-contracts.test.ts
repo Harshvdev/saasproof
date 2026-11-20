@@ -18,6 +18,12 @@ describe("Accessibility Suite: WAI-ARIA Semantics & Structure Contracts", () => 
     expect(layoutCode).toContain("suppressHydrationWarning");
   });
 
+  test("root layout provides an accessible skip-to-content link targeting main content", () => {
+    expect(layoutCode).toContain('href="#main-content"');
+    expect(layoutCode).toContain('className="skip-to-content"');
+    expect(layoutCode).toContain("Skip to content");
+  });
+
   test("HistoryDrawer conforms to WAI-ARIA dialog semantics with title label", () => {
     expect(historyCode).toContain('role="dialog"');
     expect(historyCode).toContain('aria-modal="true"');

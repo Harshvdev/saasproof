@@ -32,4 +32,9 @@ describe("Accessibility Suite: Theme Contrast & Design Token Contracts", () => {
     expect(cssContent).toContain(":focus-visible");
     expect(cssContent).toContain("outline: 2px solid var(--border-focus);");
   });
+
+  test("defines accessible skip-to-content link styles", () => {
+    expect(cssContent).toContain(".skip-to-content");
+    expect(cssContent).toContain(".skip-to-content:focus");
+  });
 });
