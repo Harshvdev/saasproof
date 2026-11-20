@@ -2,6 +2,7 @@ import { Lightbulb } from "lucide-react";
 import type { ValidatorOutput } from "@/lib/types";
 import { LoadingBlock } from "./LoadingBlock";
 import { VerdictGauge } from "./VerdictGauge";
+import { SensitivityCalculator } from "./SensitivityCalculator";
 
 interface OverviewTabProps {
   validator?: ValidatorOutput;
@@ -157,6 +158,8 @@ export function OverviewTab({ validator, visible }: OverviewTabProps) {
               ))}
             </div>
           </div>
+
+          <SensitivityCalculator />
         </div>
       )}
     </div>

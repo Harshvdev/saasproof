@@ -2,7 +2,7 @@
 
 [![Next.js 16](https://img.shields.io/badge/Next.js-16.4.6-black)](https://nextjs.org)
 [![Bun](https://img.shields.io/badge/Runtime-Bun%201.3-orange)](https://bun.com)
-[![Tests](https://img.shields.io/badge/Tests-12%20Passed-success)](tests/pipeline.test.ts)
+[![Tests](https://img.shields.io/badge/Tests-52%20Passed-success)](tests/)
 
 > **Repository:** [https://github.com/Harshvdev/saasproof](https://github.com/Harshvdev/saasproof)
 
@@ -146,7 +146,7 @@ TINYFISH_API_KEY="your-tinyfish-api-key" # Optional for live web scraping
 
 ### 3. Run Quality & Test Suite
 ```bash
-# Run unit & schema tests (15 passing tests)
+# Run comprehensive multi-suite tests: unit, security, integration, accessibility (52 passing tests, <500ms)
 bun run test
 
 # Run ESLint check (0 errors, 0 warnings)

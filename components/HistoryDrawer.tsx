@@ -36,7 +36,9 @@ export function HistoryDrawer({
   return (
     <dialog
       ref={dialogRef}
-      aria-label="Saved Validation History"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="history-drawer-title"
       onCancel={(e) => {
         e.preventDefault();
         onClose();
@@ -48,7 +50,7 @@ export function HistoryDrawer({
     >
       <div className="drawer-inner">
         <div className="drawer-header">
-          <div className="drawer-title">
+          <div className="drawer-title" id="history-drawer-title">
             <History
               className="h-4 w-4"
               style={{ color: "var(--orange-500)" }}

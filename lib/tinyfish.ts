@@ -22,6 +22,13 @@ function getDomain(rawUrl: string): string {
   }
 }
 
+/**
+ * Transforms raw search hit records into deduplicated, structured citation objects.
+ *
+ * @param hits - Array of search results.
+ * @param limit - Maximum number of citations to return (defaults to 5).
+ * @returns Array of deduplicated SourceCitation objects with cleaned titles and domains.
+ */
 export function hitsToCitations(hits: SearchHit[], limit = 5): SourceCitation[] {
   const seen = new Set<string>();
   const citations: SourceCitation[] = [];
@@ -77,6 +84,13 @@ async function duckDuckGoFallback(query: string): Promise<SearchHit[]> {
   }
 }
 
+/**
+ * Searches the live web using TinyFish Search API with automatic DuckDuckGo fallback.
+ *
+ * @param query - Web search query string.
+ * @param location - Target country/region code (defaults to "US").
+ * @returns Object with retrieved search hits and provider telemetry flag.
+ */
 export async function tinySearch(
   query: string,
   location = "US"
@@ -154,6 +168,13 @@ async function jinaFetchSingle(url: string): Promise<FetchedPage | null> {
   }
 }
 
+/**
+ * Concurrently scrapes and extracts readable text from competitor or research URLs.
+ *
+ * @param urls - Array of candidate web URLs to fetch.
+ * @param maxCharsPerPage - Character truncation ceiling per page to conserve context.
+ * @returns Object with parsed page contents and telemetry indicator.
+ */
 export async function tinyFetch(
   urls: string[],
   maxCharsPerPage = 3200
@@ -222,6 +243,14 @@ export async function tinyFetch(
   };
 }
 
+/**
+ * Executes a deep browser agent web inspection on a competitor website to extract
+ * nuanced pricing tiers, positioning claims, and customer complaints.
+ *
+ * @param url - Competitor landing page URL.
+ * @param goal - Natural language instruction for what data to locate and extract.
+ * @returns Deep agent findings or fallback fetch content with telemetry info.
+ */
 export async function tinyAgentWithFallback(
   url: string,
   goal: string

@@ -1,12 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Download,
-  MessageSquareText,
-  Printer,
-  RefreshCw,
-} from "lucide-react";
+import { MessageSquareText } from "lucide-react";
 import type {
   CompetitorOutput,
   CustomerOutput,
@@ -22,6 +17,7 @@ import { MarketTab } from "./report/MarketTab";
 import { CompetitorsTab } from "./report/CompetitorsTab";
 import { CustomersTab } from "./report/CustomersTab";
 import { RoadmapTab } from "./report/RoadmapTab";
+import { ReportHeader } from "./report/ReportHeader";
 
 export interface PartialReportData {
   framer?: FramerOutput;
@@ -52,6 +48,12 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]["id"];
 
+/**
+ * ReportWorkspace provides the interactive 5-tab startup validation dossier.
+ *
+ * @param props - ReportWorkspaceProps including live report and action callbacks.
+ * @returns Fully rendered tabbed workspace conforming to WAI-ARIA tablist semantics.
+ */
 export function ReportWorkspace({
   report,
   partial,
@@ -137,110 +139,15 @@ export function ReportWorkspace({
 
   return (
     <section className="view-enter report-workspace">
-      {/* Preset Notice Banner */}
-      {report?.isPreset && (
-        <div className="preset-notice-banner">
-          <div>
-            <strong>Sample Report</strong> — Pre-computed example.
-          </div>
-          <button
-            type="button"
-            className="action-btn action-btn-rerun"
-            onClick={onRerunLive}
-            disabled={isRunning}
-          >
-            <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Re-run Live</span>
-          </button>
-        </div>
-      )}
-
-      {/* Report Summary Dossier Header */}
-      {framer && (
-        <div className="report-hero-card">
-          <div className="report-top-bar">
-            <div>
-              <div className="report-badges">
-                <span className="tag-pill badge-accent">{framer.category}</span>
-                <span className="tag-pill">{framer.detectedModel}</span>
-                <span className="tag-pill">{framer.targetGeography}</span>
-              </div>
-              <h1 className="report-title">{framer.startupTitle}</h1>
-              <p className="report-oneliner">{framer.oneLiner}</p>
-            </div>
-
-            <div className="report-actions-bar">
-              {isRunning && onBackToProgress && (
-                <button
-                  type="button"
-                  className="action-btn"
-                  onClick={onBackToProgress}
-                >
-                  <span>← Progress</span>
-                </button>
-              )}
-              {report && (
-                <>
-                  <button
-                    type="button"
-                    className="action-btn action-btn-copilot"
-                    onClick={onOpenCopilot}
-                  >
-                    <MessageSquareText className="h-4 w-4" aria-hidden="true" />
-                    <span>Co-Pilot</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="action-btn"
-                    onClick={handleDownloadMarkdown}
-                  >
-                    <Download className="h-4 w-4" aria-hidden="true" />
-                    <span>Export .md</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="action-btn action-btn-print"
-                    onClick={() => window.print()}
-                  >
-                    <Printer className="h-4 w-4" aria-hidden="true" />
-                    <span>Print</span>
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-
-          {report?.telemetry && (
-            <div className="telemetry-strip">
-              <div className="telemetry-item">
-                <div className="telemetry-label">Model</div>
-                <div className="telemetry-val">
-                  {report.telemetry.llmProviderUsed}
-                </div>
-              </div>
-              <div className="telemetry-item">
-                <div className="telemetry-label">Searches</div>
-                <div className="telemetry-val">
-                  {report.telemetry.tinySearchCalls} queries
-                </div>
-              </div>
-              <div className="telemetry-item">
-                <div className="telemetry-label">Pages</div>
-                <div className="telemetry-val">
-                  {report.telemetry.tinyFetchCalls}
-                  {report.telemetry.tinyAgentUsed ? " + Agent" : ""}
-                </div>
-              </div>
-              <div className="telemetry-item">
-                <div className="telemetry-label">Time</div>
-                <div className="telemetry-val">
-                  {(report.telemetry.durationMs / 1000).toFixed(1)}s
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      <ReportHeader
+        report={report}
+        framer={framer}
+        isRunning={isRunning}
+        onRerunLive={onRerunLive}
+        onBackToProgress={onBackToProgress}
+        onOpenCopilot={onOpenCopilot}
+        onDownloadMarkdown={handleDownloadMarkdown}
+      />
 
       {/* Sticky Section Tabs + Show All Toggle */}
       <div className="report-nav-bar no-print">
@@ -261,6 +168,7 @@ export function ReportWorkspace({
                 type="button"
                 role="tab"
                 id={`tab-${tab.id}`}
+                aria-controls={`panel-${tab.id}`}
                 aria-selected={selected}
                 tabIndex={selected || showAllSections ? 0 : -1}
                 onClick={() => {

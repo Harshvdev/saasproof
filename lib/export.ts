@@ -1,5 +1,12 @@
 import type { StartupReport } from "./types";
 
+/**
+ * Serializes a full StartupReport validation dossier into a clean,
+ * structured Markdown document ready for founder download or offline export.
+ *
+ * @param report - Complete StartupReport containing framer, market, competitors, customers, validator, and planner sections.
+ * @returns Formatted Markdown document string.
+ */
 export function reportToMarkdown(report: StartupReport): string {
   const { framer, market, competitors, customers, validator, planner } = report;
 
@@ -96,4 +103,3 @@ export function reportToMarkdown(report: StartupReport): string {
 
   return lines.join("\n");
 }
-

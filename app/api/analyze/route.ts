@@ -11,10 +11,18 @@ import {
   extractUserKey,
   getQuotaSnapshot,
 } from "@/lib/rate-limit";
+import { redactSecrets, validatePromptGuard } from "@/lib/security";
 import { AnalysisInputSchema, type AgentSSEEvent } from "@/lib/types";
 
 export const maxDuration = 300;
 
+/**
+ * GET /api/analyze
+ * Returns visitor quota status and server cache telemetry.
+ *
+ * @param req - Incoming HTTP request.
+ * @returns JSON response containing current quota and cache statistics.
+ */
 export async function GET(req: Request) {
   const userKey = extractUserKey(req);
   return Response.json({
@@ -23,6 +31,13 @@ export async function GET(req: Request) {
   });
 }
 
+/**
+ * POST /api/analyze
+ * Validates, filters, and streams multi-agent startup validation dossier over SSE.
+ *
+ * @param req - Incoming HTTP request with JSON payload conforming to AnalysisInputSchema.
+ * @returns Server-Sent Events stream or structured HTTP error (400, 422, 429).
+ */
 export async function POST(req: Request) {
   const userKey = extractUserKey(req);
 
@@ -40,6 +55,17 @@ export async function POST(req: Request) {
         error: parsed.error.issues[0]?.message || "Invalid input parameters.",
       },
       { status: 400 }
+    );
+  }
+
+  // Security Guardrail: Reject adversarial prompt injections & script payloads with HTTP 422
+  const guard = validatePromptGuard(parsed.data.idea);
+  if (!guard.safe) {
+    return Response.json(
+      {
+        error: `Prompt validation failed: ${guard.reason || "Adversarial or unsupported input patterns detected."}`,
+      },
+      { status: 422 }
     );
   }
 
@@ -68,8 +94,10 @@ export async function POST(req: Request) {
     async start(controller) {
       const send = (event: AgentSSEEvent) => {
         try {
+          const rawString = JSON.stringify(event);
+          const sanitizedString = redactSecrets(rawString);
           controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify(event)}\n\n`)
+            encoder.encode(`data: ${sanitizedString}\n\n`)
           );
         } catch {
           // Stream closed by client

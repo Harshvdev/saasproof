@@ -1,11 +1,19 @@
 import { getCachedCopilot, setCachedCopilot } from "@/lib/cache";
 import { generateChatReply } from "@/lib/llm";
 import { consumeCopilotQuota, extractUserKey } from "@/lib/rate-limit";
+import { redactSecrets, validatePromptGuard } from "@/lib/security";
 import { tinySearch } from "@/lib/tinyfish";
 import { CopilotRequestSchema } from "@/lib/types";
 
 export const maxDuration = 60;
 
+/**
+ * POST /api/copilot
+ * Handles interactive founder follow-up queries, pivot tests, and outreach drafts.
+ *
+ * @param req - Incoming HTTP request with CopilotRequestSchema JSON payload.
+ * @returns JSON response with generated answer and sources or structured error (400, 422, 429).
+ */
 export async function POST(req: Request) {
   const userKey = extractUserKey(req);
 
@@ -21,6 +29,17 @@ export async function POST(req: Request) {
     return Response.json(
       { error: parsed.error.issues[0]?.message || "Invalid question." },
       { status: 400 }
+    );
+  }
+
+  // Security Guardrail: Reject adversarial prompt injections & script payloads with HTTP 422
+  const guard = validatePromptGuard(parsed.data.question);
+  if (!guard.safe) {
+    return Response.json(
+      {
+        error: `Prompt validation failed: ${guard.reason || "Adversarial or unsupported question detected."}`,
+      },
+      { status: 422 }
     );
   }
 
@@ -42,7 +61,7 @@ export async function POST(req: Request) {
     const cachedAnswer = getCachedCopilot(report.id, question);
     if (cachedAnswer) {
       return Response.json({
-        answer: cachedAnswer,
+        answer: redactSecrets(cachedAnswer),
         provider: "cache",
         sources: [],
         quota: quotaRes.quota,
@@ -121,12 +140,14 @@ FOUNDER QUESTION:
 ${question}`,
     });
 
+    const sanitizedAnswer = redactSecrets(reply.text);
+
     if (!useLiveWeb && (!history || history.length === 0)) {
-      setCachedCopilot(report.id, question, reply.text);
+      setCachedCopilot(report.id, question, sanitizedAnswer);
     }
 
     return Response.json({
-      answer: reply.text,
+      answer: sanitizedAnswer,
       provider: reply.provider,
       sources: liveSources,
       quota: quotaRes.quota,

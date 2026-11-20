@@ -120,7 +120,9 @@ export function CopilotDrawer({
   return (
     <dialog
       ref={dialogRef}
-      aria-label="Follow-Up and Pivot Co-Pilot"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="copilot-drawer-title"
       onCancel={(e) => {
         e.preventDefault();
         onClose();
@@ -133,7 +135,7 @@ export function CopilotDrawer({
       <div className="drawer-inner">
         <div className="drawer-header">
           <div>
-            <div className="drawer-title">
+            <div className="drawer-title" id="copilot-drawer-title">
               <Compass
                 className="h-4 w-4"
                 style={{ color: "var(--orange-500)" }}
@@ -303,6 +305,7 @@ export function CopilotDrawer({
               type="submit"
               className="btn-send-copilot"
               disabled={loading || question.trim().length < 3}
+              aria-label="Send inquiry to Co-Pilot"
             >
               <span>Send</span>
               <Send className="h-3.5 w-3.5" aria-hidden="true" />

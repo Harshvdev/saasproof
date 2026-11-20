@@ -315,6 +315,13 @@ async function callGroq(
   throw new Error(lastError);
 }
 
+/**
+ * Generates and validates structured JSON from an LLM model with automatic fallback
+ * between Gemini Flash and Groq Llama, enforcing Zod schema validation.
+ *
+ * @param opts - Object containing systemPrompt, userPrompt, Zod schema, and schemaHint.
+ * @returns Object with parsed schema data and provider name indicator.
+ */
 export async function generateStructuredJSON<T>(opts: {
   systemPrompt: string;
   userPrompt: string;
@@ -372,6 +379,13 @@ ${opts.schemaHint}`;
   }
 }
 
+/**
+ * Generates natural language chat responses for Co-Pilot conversational inquiries,
+ * falling back seamlessly between Gemini and Groq providers.
+ *
+ * @param opts - Object containing systemPrompt and userPrompt strings.
+ * @returns Object with generated response text and active provider string.
+ */
 export async function generateChatReply(opts: {
   systemPrompt: string;
   userPrompt: string;
