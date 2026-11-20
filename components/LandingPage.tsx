@@ -3,6 +3,8 @@
 import React, { useId, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
+  BarChart3,
+  CalendarDays,
   ChevronDown,
   CircleHelp,
   Globe2,
@@ -10,6 +12,8 @@ import {
   Pencil,
   PieChart,
   TriangleAlert,
+  UserRound,
+  Users,
   Zap,
 } from "lucide-react";
 import type { AnalysisInput, StartupReport } from "@/lib/types";
@@ -56,9 +60,10 @@ export function LandingPage({
   onLoadPreset,
   onShowToast,
 }: LandingPageProps) {
-  const ideaId = useId();
-  const regionId = useId();
-  const modelId = useId();
+  const generatedId = useId();
+  const ideaId = "lp-idea";
+  const regionId = `${generatedId}-region`;
+  const modelId = `${generatedId}-model`;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const [idea, setIdea] = useState("");
@@ -116,48 +121,23 @@ export function LandingPage({
     onShowToast(`Prompt loaded for ${preset.framer.startupTitle}`);
   };
 
-  const scrollToExamples = () => {
-    document
-      .getElementById("example-reports-section")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   return (
     <>
       <section className="lp-hero">
         <div className="lp-hero-copy">
-          <div className="lp-pill">
-            <span className="lp-pill-badge">6 Specialized Agents</span>
-            <span className="lp-pill-text">Live web-grounded research</span>
-          </div>
-
-          <h1 className="lp-hero-title">
-            Find the weak point <br />
-            <em>before you build.</em>
+          <p className="lp-eyebrow">Startup idea validator</p>
+          <h1 className="lp-h1">
+            Find the weak point
+            <br />
+            <span className="lp-h1-accent">before</span> you{" "}
+            <span className="lp-h1-orange">build.</span>
           </h1>
-
-          <p className="lp-hero-sub">
-            Validate any startup idea with real market data, competitor intel,
-            customer insights, and a 90-day roadmap in ~60 seconds.
+          <p className="lp-sub">
+            Validate your startup idea with real market data, competitor
+            analysis,
+            <br />
+            customer insights, risk assessment and a 90-day roadmap — in ~60s.
           </p>
-
-          <div className="lp-hero-actions">
-            <button
-              type="button"
-              className="lp-hero-btn is-primary"
-              onClick={() => textareaRef.current?.focus()}
-            >
-              <span>Validate your idea</span>
-              <ArrowRight aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              className="lp-hero-btn"
-              onClick={scrollToExamples}
-            >
-              <span>Explore example reports</span>
-            </button>
-          </div>
         </div>
 
         <ResearchSnapshot />
@@ -165,167 +145,157 @@ export function LandingPage({
 
       {/* Interactive Idea Composer Section */}
       <section className="lp-composer" aria-label="Describe your startup idea">
-        <form className="lp-composer-card" onSubmit={handleSubmit}>
-          <div className="lp-composer-head">
-            <div className="lp-composer-title-group">
-              <Pencil aria-hidden="true" />
-              <div>
-                <label className="lp-composer-title" htmlFor={ideaId}>
-                  Describe your idea
-                </label>
-                <div className="lp-composer-sub">
-                  Be specific about who pays and what problem you solve.
-                </div>
-              </div>
-            </div>
-          </div>
+        <form onSubmit={handleSubmit} noValidate>
+          <label className="lp-composer-title" htmlFor={ideaId}>
+            <Pencil aria-hidden="true" />
+            <span>Describe your startup idea</span>
+          </label>
 
-          <div className="lp-textarea-wrap">
+          <div
+            className={`lp-idea-box${showValidationError ? " is-invalid" : ""}`}
+          >
             <textarea
               id={ideaId}
               ref={textareaRef}
-              rows={4}
-              maxLength={1200}
-              placeholder="e.g., A subscription compliance tracker for solo physiotherapists in India that automatically reconciles patient consent forms..."
+              className="lp-idea-input"
               value={idea}
-              onChange={(e) => setIdea(e.target.value)}
+              maxLength={1200}
+              onChange={(event) => {
+                setIdea(event.target.value);
+                if (submitAttempted && event.target.value.trim().length >= 10) {
+                  setSubmitAttempted(false);
+                }
+              }}
               onKeyDown={handleTextareaKeyDown}
+              placeholder="e.g., A subscription compliance tracker for solo physiotherapists in India that automatically reconciles patient consent forms..."
               aria-invalid={showValidationError}
-              aria-describedby={showValidationError ? "idea-error" : undefined}
+              spellCheck={false}
             />
-            <div className="lp-char-count">{len} / 1200</div>
+            <span className="lp-char-count">{len} / 1,200</span>
           </div>
 
           {showValidationError && (
-            <p className="lp-input-error" id="idea-error" role="alert">
-              <TriangleAlert aria-hidden="true" />
-              <span>{validationError}</span>
+            <p className="lp-idea-error" role="alert">
+              {validationError}
             </p>
           )}
 
           <div className="lp-controls">
             <div className="lp-field lp-field-region">
-              <label className="lp-label" htmlFor={regionId}>
-                <MapPin aria-hidden="true" />
-                <span>Target Region</span>
-              </label>
+              <MapPin aria-hidden="true" />
               <div className="lp-field-body">
+                <label className="lp-field-label" htmlFor={regionId}>
+                  Region
+                </label>
                 <div className="lp-select-wrap">
                   <select
                     id={regionId}
+                    className="lp-select"
                     value={region}
-                    onChange={(e) => setRegion(e.target.value)}
+                    onChange={(event) => setRegion(event.target.value)}
                   >
-                    {REGIONS.map((r) => (
-                      <option key={r} value={r}>
-                        {r}
+                    {REGIONS.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="lp-select-arrow" aria-hidden="true" />
+                  <ChevronDown aria-hidden="true" />
                 </div>
               </div>
             </div>
 
+            <span className="lp-control-divider" aria-hidden="true" />
+
             <div className="lp-field lp-field-model">
-              <label className="lp-label" htmlFor={modelId}>
-                <PieChart aria-hidden="true" />
-                <span>Business Model</span>
-              </label>
+              <Globe2 aria-hidden="true" />
               <div className="lp-field-body">
+                <label className="lp-field-label" htmlFor={modelId}>
+                  Model
+                </label>
                 <div className="lp-select-wrap">
                   <select
                     id={modelId}
+                    className="lp-select"
                     value={businessModel}
-                    onChange={(e) =>
+                    onChange={(event) =>
                       setBusinessModel(
-                        e.target.value as AnalysisInput["businessModel"]
+                        event.target.value as AnalysisInput["businessModel"]
                       )
                     }
                   >
-                    {BUSINESS_MODELS.map((m) => (
-                      <option key={m} value={m}>
-                        {m}
+                    {BUSINESS_MODELS.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="lp-select-arrow" aria-hidden="true" />
+                  <ChevronDown aria-hidden="true" />
                 </div>
               </div>
             </div>
+
+            <span className="lp-control-divider" aria-hidden="true" />
 
             <div className="lp-deep">
-              <div className="lp-deep-top">
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={enableDeepScrape}
-                  className="lp-switch"
-                  onClick={() => setEnableDeepScrape((v) => !v)}
-                >
-                  <span
-                    className={`lp-switch-track ${enableDeepScrape ? "is-on" : ""}`}
-                  >
-                    <span className="lp-switch-thumb" />
-                  </span>
-                  <span className="lp-switch-text">Deep scrape</span>
-                </button>
-                <div className="lp-tooltip-wrap">
-                  <span
-                    className="lp-tooltip-trigger"
-                    tabIndex={0}
-                    role="button"
-                    aria-label="Deep scrape info"
-                  >
-                    <CircleHelp aria-hidden="true" />
-                  </span>
-                  <div className="lp-tooltip" role="tooltip">
-                    Uses TinyFish deep web browser extraction to analyze actual
-                    competitor pricing, features, and landing page claims.
-                  </div>
-                </div>
-              </div>
-              <span className="lp-deep-sub">
-                Extracts full competitor landing pages
-              </span>
-            </div>
-          </div>
-
-          <div className="lp-analysis-row">
-            <div className="lp-agents-hint">
-              <span className="lp-hint-title">Agents that will run:</span>
-              <div className="lp-agent-badges">
-                <span className="lp-agent-badge">
-                  <Globe2 aria-hidden="true" />
-                  <span>Market Analyst</span>
-                </span>
-                <span className="lp-agent-badge">
-                  <Globe2 aria-hidden="true" />
-                  <span>Competitor Intel</span>
-                </span>
-                <span className="lp-agent-badge">
-                  <Globe2 aria-hidden="true" />
-                  <span>Customer Profiler</span>
-                </span>
-                <span className="lp-agent-badge">
-                  <Globe2 aria-hidden="true" />
-                  <span>Execution Planner</span>
-                </span>
-              </div>
+              <button
+                type="button"
+                className="lp-switch"
+                role="switch"
+                aria-checked={enableDeepScrape}
+                aria-label="Enable deep search"
+                onClick={() => setEnableDeepScrape((value) => !value)}
+              />
+              <label
+                className="lp-deep-label"
+                onClick={() => setEnableDeepScrape((value) => !value)}
+                title="Uses TinyFish deep web browser extraction to analyze actual competitor pricing, features, and landing page claims."
+              >
+                <span>Deep Search</span>
+                <CircleHelp aria-hidden="true" />
+              </label>
             </div>
 
             <button
               type="submit"
-              className="lp-submit-btn"
-              disabled={isRunning || !isValid}
+              className="lp-validate-btn"
+              disabled={isRunning}
             >
-              <Zap aria-hidden="true" />
-              <span>{isRunning ? "Running..." : "Analyze Idea"}</span>
+              <Zap aria-hidden="true" fill="currentColor" />
+              <span>{isRunning ? "Validating…" : "Validate Idea"}</span>
+              <ArrowRight aria-hidden="true" />
             </button>
           </div>
 
+          <div className="lp-analysis-row">
+            <span className="lp-analysis-label">
+              <PieChart aria-hidden="true" />
+              Analysis includes:
+            </span>
+            <span className="lp-analysis-item">
+              <BarChart3 aria-hidden="true" />
+              Market size
+            </span>
+            <span className="lp-analysis-item">
+              <Users aria-hidden="true" />
+              Competitors
+            </span>
+            <span className="lp-analysis-item">
+              <UserRound aria-hidden="true" />
+              Customer fit
+            </span>
+            <span className="lp-analysis-item">
+              <TriangleAlert aria-hidden="true" />
+              Risks
+            </span>
+            <span className="lp-analysis-item">
+              <CalendarDays aria-hidden="true" />
+              Roadmap
+            </span>
+          </div>
+
           {errorMessage && (
-            <p className="lp-error-banner" role="alert">
+            <p className="lp-idea-error" role="alert">
               {errorMessage}
             </p>
           )}

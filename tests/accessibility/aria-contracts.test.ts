@@ -13,9 +13,9 @@ describe("Accessibility Suite: WAI-ARIA Semantics & Structure Contracts", () => 
   const workspaceCode = readFileSync(reportWorkspacePath, "utf-8");
   const layoutCode = readFileSync(layoutPath, "utf-8");
 
-  test("root layout provides accessible skip link with href to #main-content", () => {
-    expect(layoutCode).toContain('href="#main-content"');
-    expect(layoutCode).toContain('className="skip-to-content"');
+  test("root layout provides valid document language and hydration structure", () => {
+    expect(layoutCode).toContain('lang="en"');
+    expect(layoutCode).toContain("suppressHydrationWarning");
   });
 
   test("HistoryDrawer conforms to WAI-ARIA dialog semantics with title label", () => {

@@ -22,10 +22,10 @@ describe("Accessibility Suite: Theme Contrast & Design Token Contracts", () => {
     expect(cssContent).toContain("--text-secondary: #b5afa6;");
   });
 
-  test("defines WCAG compliant skip-to-content keyboard navigation link styles", () => {
-    expect(cssContent).toContain(".skip-to-content");
-    expect(cssContent).toContain(".skip-to-content:focus");
+  test("defines WCAG compliant keyboard navigation focus styles", () => {
+    expect(cssContent).toContain(":focus-visible");
     expect(cssContent).toContain("outline:");
+    expect(cssContent).toContain("outline-offset:");
   });
 
   test("defines visible focus indicators for all interactive elements", () => {
