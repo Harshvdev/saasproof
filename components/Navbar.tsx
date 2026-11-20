@@ -56,13 +56,13 @@ export function Navbar({
           type="button"
           className="lp-brand"
           onClick={onResetToHero}
-          title="SparkProof Home"
-          aria-label="SparkProof home"
+          title="SaaSProof Home"
+          aria-label="SaaSProof home"
         >
           <span className="lp-brand-mark">
             <Zap size={17} strokeWidth={2.4} fill="currentColor" aria-hidden="true" />
           </span>
-          <span className="lp-brand-name">SparkProof</span>
+          <span className="lp-brand-name">SaaSProof</span>
         </button>
 
         <nav className="lp-nav" aria-label="Main navigation">

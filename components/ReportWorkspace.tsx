@@ -127,7 +127,7 @@ export function ReportWorkspace({
     a.href = url;
     a.download = `${report.framer.startupTitle
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")}-sparkproof.md`;
+      .replace(/[^a-z0-9]+/g, "-")}-saasproof.md`;
     a.click();
     URL.revokeObjectURL(url);
     onShowToast("Exported Markdown validation report");

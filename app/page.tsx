@@ -41,8 +41,8 @@ import type {
   ValidatorOutput,
 } from "@/lib/types";
 
-const STORAGE_KEY = "sparkproof_reports_v1";
-const THEME_KEY = "sparkproof_theme_v1";
+const STORAGE_KEY = "saasproof_reports_v1";
+const THEME_KEY = "saasproof_theme_v1";
 
 type ViewMode = "hero" | "validating" | "report";
 
@@ -107,9 +107,9 @@ function createInitialNodes(): Record<AgentNodeId, AgentNodeState> {
 
 function ensureUserCookie() {
   if (typeof document === "undefined") return;
-  if (!document.cookie.includes("sparkproof_uid=")) {
+  if (!document.cookie.includes("saasproof_uid=")) {
     const uid = `sp_${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`;
-    document.cookie = `sparkproof_uid=${uid}; path=/; max-age=2592000; SameSite=Lax`;
+    document.cookie = `saasproof_uid=${uid}; path=/; max-age=2592000; SameSite=Lax`;
   }
 }
 

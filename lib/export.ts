@@ -4,7 +4,7 @@ export function reportToMarkdown(report: StartupReport): string {
   const { framer, market, competitors, customers, validator, planner } = report;
 
   const lines: string[] = [
-    `# ${framer.startupTitle} — SparkProof Validation Report`,
+    `# ${framer.startupTitle} — SaaSProof Validation Report`,
     `> ${framer.oneLiner}`,
     ``,
     `- **Generated:** ${new Date(report.createdAt).toLocaleString()}`,

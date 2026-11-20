@@ -109,7 +109,7 @@ export async function POST(req: Request) {
   try {
     const reply = await generateChatReply({
       systemPrompt:
-        "You are SparkProof's Startup Co-Pilot. Answer founder follow-up questions, test pivots, refine pricing/positioning, and give sharp, concrete numbers and action steps grounded in the validation report below. Keep answers concise, structured with bullet points, and honest about trade-offs.",
+        "You are SaaSProof's Startup Co-Pilot. Answer founder follow-up questions, test pivots, refine pricing/positioning, and give sharp, concrete numbers and action steps grounded in the validation report below. Keep answers concise, structured with bullet points, and honest about trade-offs.",
       userPrompt: `VALIDATION REPORT CONTEXT:
 ${JSON.stringify(compactReportContext, null, 2)}
 ${webSnippetBlock}

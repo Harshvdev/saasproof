@@ -1,13 +1,11 @@
-# SparkProof — Multi-Agent Startup Co-Pilot (PS08)
+# SaaSProof — Multi-Agent Startup Co-Pilot (PS08)
 
 [![PromptWars x AgentX 2.0](https://img.shields.io/badge/Hackathon-PromptWars%20x%20AgentX%202.0-blue)](https://hack2skill.com)
 [![Problem Statement](https://img.shields.io/badge/Vertical-PS08%3A%20Startup%20Co--Pilot-green)](https://hack2skill.com)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16.4.6-black)](https://nextjs.org)
 [![Bun](https://img.shields.io/badge/Runtime-Bun%201.3-orange)](https://bun.com)
 [![Tests](https://img.shields.io/badge/Tests-12%20Passed-success)](tests/pipeline.test.ts)
-[![Deployment](https://img.shields.io/badge/Live-Vercel-success)](https://sparkproof.vercel.app/)
 
-> **Live Application:** [https://sparkproof.vercel.app/](https://sparkproof.vercel.app/)  
 > **Repository:** [https://github.com/Harshvdev/saasproof](https://github.com/Harshvdev/saasproof)
 
 ---
@@ -20,13 +18,13 @@
 ### Why This Matters
 Over 90% of early-stage startups fail because they build something nobody wants or enter crowded markets with fatally flawed unit economics. Founders suffer from confirmation bias and spend months building MVPs before performing rigorous customer discovery or competitor benchmarking.
 
-SparkProof acts as an unsparing, highly analytical AI Co-Pilot that turns raw, unstructured founder ideas into an exhaustive, battle-tested validation dossier backed by real-time web research in under 60 seconds.
+SaaSProof acts as an unsparing, highly analytical AI Co-Pilot that turns raw, unstructured founder ideas into an exhaustive, battle-tested validation dossier backed by real-time web research in under 60 seconds.
 
 ---
 
 ## Approach and Logic
 
-SparkProof uses a **3-stage, 6-agent orchestrated pipeline** designed for speed, deep analytical rigor, and zero hallucinations:
+SaaSProof uses a **3-stage, 6-agent orchestrated pipeline** designed for speed, deep analytical rigor, and zero hallucinations:
 
 ```
                   ┌─────────────────────────────────┐
@@ -176,6 +174,5 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## Deployment
 
 The application is deployed on **Vercel** with Next.js App Router:
-- **Production URL:** [https://sparkproof.vercel.app/](https://sparkproof.vercel.app/)
 - **Vercel Config:** `maxDuration: 300` on `/api/analyze` and `maxDuration: 60` on `/api/copilot` configured in [vercel.json](vercel.json).
 - **Edge Performance:** Sub-500ms TTFB with HSTS and asset preloading.

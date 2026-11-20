@@ -39,7 +39,7 @@ function getBucket(userId: string, now: number): UserBucket {
 
 export function extractUserKey(req: Request): string {
   const cookieHeader = req.headers.get("cookie") ?? "";
-  const match = cookieHeader.match(/sparkproof_uid=([a-zA-Z0-9_-]{8,64})/);
+  const match = cookieHeader.match(/saasproof_uid=([a-zA-Z0-9_-]{8,64})/);
   const forwarded = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   const realIp = req.headers.get("x-real-ip")?.trim();
   const ipPart = forwarded || realIp || "local";
