@@ -31,36 +31,43 @@ export function SensitivityMetricsGrid({
 }: SensitivityMetricsGridProps) {
   const { ltv, ltvCacRatio, paybackMonths, annualRevPer100, statusTier } = metrics;
 
+  const metricCards = [
+    {
+      label: "Estimated LTV",
+      value: `$${ltv.toLocaleString("en-US")}`,
+      subtitle: "Lifetime revenue / customer",
+      color: "var(--text-primary)",
+    },
+    {
+      label: "LTV / CAC Ratio",
+      value: `${ltvCacRatio}x`,
+      subtitle: "Target: > 3.0x",
+      color: statusTier.color,
+    },
+    {
+      label: "CAC Payback",
+      value: `${paybackMonths} mo`,
+      subtitle: "Months to cash break-even",
+      color: "var(--text-primary)",
+    },
+    {
+      label: "Annual Run-Rate / 100 Users",
+      value: `$${annualRevPer100}`,
+      subtitle: "Base ARR projection",
+      color: "var(--orange-700)",
+    },
+  ] as const;
+
   return (
     <>
-      {/* 3-Column Live Sliders */}
-      <div className="section-grid-3" style={{ marginBottom: "20px" }}>
+      <div className="section-grid-3 sens-sliders-grid">
         {sliders.map((slider) => (
-          <div key={slider.id} className="tam-card" style={{ padding: "14px" }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "8px",
-              }}
-            >
-              <label
-                htmlFor={slider.id}
-                style={{
-                  fontSize: "0.8rem",
-                  fontWeight: 700,
-                  color: "var(--text-secondary)",
-                }}
-              >
+          <div key={slider.id} className="tam-card sens-slider-card">
+            <div className="sens-slider-header">
+              <label htmlFor={slider.id} className="sens-slider-label">
                 {slider.label}
               </label>
-              <span
-                className="mono"
-                style={{ fontWeight: 800, color: "var(--orange-700)" }}
-              >
-                {slider.displayValue}
-              </span>
+              <span className="mono sens-slider-val">{slider.displayValue}</span>
             </div>
             <input
               id={slider.id}
@@ -74,21 +81,9 @@ export function SensitivityMetricsGrid({
               aria-valuemax={slider.max}
               aria-valuenow={slider.value}
               aria-valuetext={slider.valueText}
-              style={{
-                width: "100%",
-                accentColor: "var(--orange-700)",
-                cursor: "pointer",
-              }}
+              className="sens-range-input"
             />
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: "0.68rem",
-                color: "var(--text-muted)",
-                marginTop: "4px",
-              }}
-            >
+            <div className="sens-range-bounds">
               <span>{slider.minLabel}</span>
               <span>{slider.maxLabel}</span>
             </div>
@@ -96,154 +91,34 @@ export function SensitivityMetricsGrid({
         ))}
       </div>
 
-      {/* Output Metrics Matrix */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          gap: "12px",
-          background: "var(--bg-subtle)",
-          padding: "16px",
-          borderRadius: "var(--radius-md)",
-          border: "1px solid var(--border-hairline)",
-          marginBottom: "16px",
-        }}
-      >
-        <div>
-          <div
-            style={{
-              fontSize: "0.74rem",
-              textTransform: "uppercase",
-              color: "var(--text-muted)",
-              fontWeight: 700,
-            }}
-          >
-            Estimated LTV
+      <div className="sens-metrics-matrix">
+        {metricCards.map((card) => (
+          <div key={card.label}>
+            <div className="sens-metric-label">{card.label}</div>
+            <div
+              className="mono sens-metric-val"
+              style={{ color: card.color }}
+            >
+              {card.value}
+            </div>
+            <div className="sens-metric-sub">{card.subtitle}</div>
           </div>
-          <div
-            className="mono"
-            style={{
-              fontSize: "1.35rem",
-              fontWeight: 800,
-              color: "var(--text-primary)",
-            }}
-          >
-            ${ltv.toLocaleString("en-US")}
-          </div>
-          <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)" }}>
-            Lifetime revenue / customer
-          </div>
-        </div>
-
-        <div>
-          <div
-            style={{
-              fontSize: "0.74rem",
-              textTransform: "uppercase",
-              color: "var(--text-muted)",
-              fontWeight: 700,
-            }}
-          >
-            LTV / CAC Ratio
-          </div>
-          <div
-            className="mono"
-            style={{
-              fontSize: "1.35rem",
-              fontWeight: 800,
-              color: statusTier.color,
-            }}
-          >
-            {ltvCacRatio}x
-          </div>
-          <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)" }}>
-            Target: &gt; 3.0x
-          </div>
-        </div>
-
-        <div>
-          <div
-            style={{
-              fontSize: "0.74rem",
-              textTransform: "uppercase",
-              color: "var(--text-muted)",
-              fontWeight: 700,
-            }}
-          >
-            CAC Payback
-          </div>
-          <div
-            className="mono"
-            style={{
-              fontSize: "1.35rem",
-              fontWeight: 800,
-              color: "var(--text-primary)",
-            }}
-          >
-            {paybackMonths} mo
-          </div>
-          <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)" }}>
-            Months to cash break-even
-          </div>
-        </div>
-
-        <div>
-          <div
-            style={{
-              fontSize: "0.74rem",
-              textTransform: "uppercase",
-              color: "var(--text-muted)",
-              fontWeight: 700,
-            }}
-          >
-            Annual Run-Rate / 100 Users
-          </div>
-          <div
-            className="mono"
-            style={{
-              fontSize: "1.35rem",
-              fontWeight: 800,
-              color: "var(--orange-700)",
-            }}
-          >
-            ${annualRevPer100}
-          </div>
-          <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)" }}>
-            Base ARR projection
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Health Verdict Bar */}
-      <div
-        aria-live="polite"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          padding: "10px 14px",
-          borderRadius: "var(--radius-sm)",
-          background: "var(--bg-elevated)",
-          border: "1px solid var(--border-hairline)",
-        }}
-      >
+      <div className="sens-verdict-bar" aria-live="polite">
         <ShieldCheck
           className="h-4 w-4 shrink-0"
           style={{ color: statusTier.color }}
           aria-hidden="true"
         />
-        <div style={{ flex: 1, fontSize: "0.82rem" }}>
+        <div className="sens-verdict-copy">
           <strong style={{ color: statusTier.color }}>
             {statusTier.label}:{" "}
           </strong>
-          <span style={{ color: "var(--text-secondary)" }}>
-            {statusTier.summary}
-          </span>
+          <span>{statusTier.summary}</span>
         </div>
-        <span
-          className={`tag-pill mono ${statusTier.badgeCls}`}
-          style={{ fontWeight: 700 }}
-        >
+        <span className={`tag-pill mono sens-verdict-pill ${statusTier.badgeCls}`}>
           {ltvCacRatio}x LTV/CAC
         </span>
       </div>

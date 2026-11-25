@@ -35,7 +35,7 @@ export function parseStructuredResponse<T>(raw: string, schema: z.ZodType<T>): T
   if (direct.success) return direct.data;
 
   if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-    const entries = Object.values(parsed as Record<string, unknown>);
+    const entries: unknown[] = Object.values(parsed);
     if (entries.length === 1 && entries[0] && typeof entries[0] === "object") {
       const unwrapped = schema.safeParse(entries[0]);
       if (unwrapped.success) return unwrapped.data;

@@ -1,9 +1,16 @@
-/**
- * Re-export bundled demo presets from modular presets directory.
- */
+import type { StartupReport } from "./types";
+import { inspectSecondhandPreset } from "./presets/inspect-secondhand";
+import { dentalCompliancePreset } from "./presets/dental-compliance";
+import { creatorSponsorshipPreset } from "./presets/creator-sponsorship";
+
 export {
-  DEMO_PRESETS,
   inspectSecondhandPreset,
   dentalCompliancePreset,
   creatorSponsorshipPreset,
-} from "./presets/index";
+};
+
+export const DEMO_PRESETS: StartupReport[] = [
+  inspectSecondhandPreset,
+  dentalCompliancePreset,
+  creatorSponsorshipPreset,
+];

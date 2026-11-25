@@ -3,6 +3,7 @@ import { runStartupPipeline } from "../../lib/agents/pipeline";
 import { resetLlmCaches } from "../../lib/llm";
 import { DEMO_PRESETS } from "../../lib/presets";
 import type { AgentSSEEvent } from "../../lib/types";
+import { createMockFetch } from "../helpers/mock-fetch";
 
 const originalFetch = globalThis.fetch;
 const originalGemini = process.env.GEMINI_API_KEY;
@@ -26,7 +27,7 @@ describe("Integration Suite: 3-Stage Multi-Agent Pipeline Orchestration", () => 
   test("executes Stage 1 -> 4 parallel Stage 2 specialists -> Stage 3 planner and emits partial SSE events", async () => {
     const sample = DEMO_PRESETS[0];
 
-    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    globalThis.fetch = createMockFetch(async (input, init) => {
       const url = String(input);
       if (url.includes("api.duckduckgo.com")) {
         return new Response(
@@ -67,7 +68,7 @@ describe("Integration Suite: 3-Stage Multi-Agent Pipeline Orchestration", () => 
         );
       }
       return new Response("Not Found", { status: 404 });
-    }) as unknown as typeof fetch;
+    });
 
     const events: AgentSSEEvent[] = [];
     const report = await runStartupPipeline({

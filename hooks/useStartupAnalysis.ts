@@ -4,6 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { scrollToTop } from "@/lib/scroll";
 import {
+  readStorageString,
+  readStorageValidatedList,
+  writeStorageString,
+} from "@/lib/storage";
+import {
   StartupReportSchema,
   UsageQuotaInfoSchema,
   type AnalysisInput,
@@ -60,11 +65,7 @@ export function useStartupAnalysis() {
         0,
         15
       );
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // Ignore storage quota full
-      }
+      writeStorageString(STORAGE_KEY, JSON.stringify(next));
       return next;
     });
   }, []);
@@ -98,38 +99,29 @@ export function useStartupAnalysis() {
     const quotaController = new AbortController();
 
     queueMicrotask(() => {
-      try {
-        const attr = document.documentElement.getAttribute("data-theme");
-        if (attr === "dark" || attr === "light") {
-          setTheme(attr);
-        } else {
-          const savedTheme = localStorage.getItem(THEME_KEY);
-          if (savedTheme === "dark" || savedTheme === "light") {
-            setTheme(savedTheme);
-            document.documentElement.setAttribute("data-theme", savedTheme);
-          } else if (
-            typeof window !== "undefined" &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches
-          ) {
-            setTheme("dark");
-            document.documentElement.setAttribute("data-theme", "dark");
-          }
+      const attr = document.documentElement.getAttribute("data-theme");
+      if (attr === "dark" || attr === "light") {
+        setTheme(attr);
+      } else {
+        const savedTheme = readStorageString(THEME_KEY);
+        if (savedTheme === "dark" || savedTheme === "light") {
+          setTheme(savedTheme);
+          document.documentElement.setAttribute("data-theme", savedTheme);
+        } else if (
+          typeof window !== "undefined" &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+        ) {
+          setTheme("dark");
+          document.documentElement.setAttribute("data-theme", "dark");
         }
-      } catch {
-        // Ignore storage errors
       }
 
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          const raw: unknown = JSON.parse(saved);
-          const parsed = z.array(StartupReportSchema).safeParse(raw);
-          if (parsed.success) {
-            setHistory(parsed.data);
-          }
-        }
-      } catch {
-        // Ignore corrupt localStorage
+      const savedHistory = readStorageValidatedList(
+        STORAGE_KEY,
+        StartupReportSchema
+      );
+      if (savedHistory.length > 0) {
+        setHistory(savedHistory);
       }
     });
 
@@ -141,7 +133,7 @@ export function useStartupAnalysis() {
           setQuota(parsed.data.quota);
         }
       })
-      .catch(() => {});
+      .catch(() => undefined);
 
     return () => {
       quotaController.abort();
@@ -156,22 +148,14 @@ export function useStartupAnalysis() {
     const nextTheme = currentTheme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
     document.documentElement.setAttribute("data-theme", nextTheme);
-    try {
-      localStorage.setItem(THEME_KEY, nextTheme);
-    } catch {
-      // Ignore storage errors
-    }
+    writeStorageString(THEME_KEY, nextTheme);
   }, [theme]);
 
   const handleDeleteReport = useCallback(
     (id: string) => {
       setHistory((prev) => {
         const next = prev.filter((r) => r.id !== id);
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-        } catch {
-          // Ignore
-        }
+        writeStorageString(STORAGE_KEY, JSON.stringify(next));
         return next;
       });
       if (activeReportRef.current?.id === id) {

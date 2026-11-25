@@ -6,6 +6,7 @@ import {
   generateStructuredJSON,
   resetLlmCaches,
 } from "../../lib/llm";
+import { createMockFetch } from "../helpers/mock-fetch";
 
 const originalFetch = globalThis.fetch;
 const originalGemini = process.env.GEMINI_API_KEY;
@@ -51,7 +52,7 @@ describe("Unit Suite: LLM JSON Extraction, Repair & Provider Fallback", () => {
     process.env.GEMINI_API_KEY = "AIzaSyFakeGeminiKeyForUnitTestingOnly123";
     const SampleSchema = z.object({ title: z.string(), score: z.number() });
 
-    globalThis.fetch = (async () =>
+    globalThis.fetch = createMockFetch(async () =>
       new Response(
         JSON.stringify({
           candidates: [
@@ -63,7 +64,8 @@ describe("Unit Suite: LLM JSON Extraction, Repair & Provider Fallback", () => {
           ],
         }),
         { status: 200, headers: { "Content-Type": "application/json" } }
-      )) as unknown as typeof fetch;
+      )
+    );
 
     const res = await generateStructuredJSON({
       systemPrompt: "Sys",
@@ -82,7 +84,7 @@ describe("Unit Suite: LLM JSON Extraction, Repair & Provider Fallback", () => {
     const SampleSchema = z.object({ title: z.string(), score: z.number() });
 
     let completionAttempt = 0;
-    globalThis.fetch = (async (input: RequestInfo | URL) => {
+    globalThis.fetch = createMockFetch(async (input) => {
       const url = String(input);
       if (url.includes("/openai/v1/models")) {
         return new Response(
@@ -99,7 +101,7 @@ describe("Unit Suite: LLM JSON Extraction, Repair & Provider Fallback", () => {
         JSON.stringify({ choices: [{ message: { content } }] }),
         { status: 200 }
       );
-    }) as unknown as typeof fetch;
+    });
 
     const res = await generateStructuredJSON({
       systemPrompt: "Sys",
@@ -117,7 +119,7 @@ describe("Unit Suite: LLM JSON Extraction, Repair & Provider Fallback", () => {
     process.env.GEMINI_API_KEY = "AIzaSyFakeGeminiKeyForUnitTestingOnly123";
     process.env.GROQ_API_KEY = "gsk_fakegroqkeyforunittestingonly1234567890abcdef";
 
-    globalThis.fetch = (async (input: RequestInfo | URL) => {
+    globalThis.fetch = createMockFetch(async (input) => {
       const url = String(input);
       if (url.includes("generativelanguage.googleapis.com")) {
         return new Response("Service Unavailable", { status: 503 });
@@ -129,7 +131,7 @@ describe("Unit Suite: LLM JSON Extraction, Repair & Provider Fallback", () => {
         JSON.stringify({ choices: [{ message: { content: "Pivot to B2B." } }] }),
         { status: 200 }
       );
-    }) as unknown as typeof fetch;
+    });
 
     const reply = await generateChatReply({
       systemPrompt: "Co-Pilot",

@@ -4,6 +4,7 @@ import {
   tinyFetch,
   tinySearch,
 } from "../../lib/tinyfish";
+import { createMockFetch } from "../helpers/mock-fetch";
 
 const originalFetch = globalThis.fetch;
 const originalTinyfishKey = process.env.TINYFISH_API_KEY;
@@ -17,7 +18,7 @@ describe("Unit Suite: TinyFish Web Grounding, SSRF Guards & Fallbacks", () => {
 
   test("tinySearch uses DuckDuckGo fallback when TINYFISH_API_KEY is unset and filters private URLs", async () => {
     delete process.env.TINYFISH_API_KEY;
-    globalThis.fetch = (async () =>
+    globalThis.fetch = createMockFetch(async () =>
       new Response(
         JSON.stringify({
           Heading: "SaaS Benchmarks",
@@ -29,7 +30,8 @@ describe("Unit Suite: TinyFish Web Grounding, SSRF Guards & Fallbacks", () => {
           ],
         }),
         { status: 200 }
-      )) as unknown as typeof fetch;
+      )
+    );
 
     const res = await tinySearch("B2B SaaS benchmarks", "India");
     expect(res.usedTinySearch).toBe(false);
@@ -39,7 +41,7 @@ describe("Unit Suite: TinyFish Web Grounding, SSRF Guards & Fallbacks", () => {
 
   test("tinySearch queries TinyFish Search when API key is configured", async () => {
     process.env.TINYFISH_API_KEY = "tf_test_key_123456";
-    globalThis.fetch = (async (input: RequestInfo | URL) => {
+    globalThis.fetch = createMockFetch(async (input) => {
       expect(String(input)).toContain("api.search.tinyfish.ai");
       return new Response(
         JSON.stringify({
@@ -58,7 +60,7 @@ describe("Unit Suite: TinyFish Web Grounding, SSRF Guards & Fallbacks", () => {
         }),
         { status: 200 }
       );
-    }) as unknown as typeof fetch;
+    });
 
     const res = await tinySearch("competitor pricing", "Global");
     expect(res.usedTinySearch).toBe(true);
@@ -70,11 +72,11 @@ describe("Unit Suite: TinyFish Web Grounding, SSRF Guards & Fallbacks", () => {
     delete process.env.TINYFISH_API_KEY;
     let fetchCalls = 0;
 
-    globalThis.fetch = (async (input: RequestInfo | URL) => {
+    globalThis.fetch = createMockFetch(async (input) => {
       fetchCalls += 1;
       expect(String(input)).toBe("https://r.jina.ai/https://public.example.com/page");
       return new Response("A".repeat(2500), { status: 200 });
-    }) as unknown as typeof fetch;
+    });
 
     const res = await tinyFetch(
       [
@@ -98,7 +100,7 @@ describe("Unit Suite: TinyFish Web Grounding, SSRF Guards & Fallbacks", () => {
     expect(blocked.fallbackReason).toContain("Blocked");
 
     process.env.TINYFISH_API_KEY = "tf_test_key_123456";
-    globalThis.fetch = (async (input: RequestInfo | URL) => {
+    globalThis.fetch = createMockFetch(async (input) => {
       const url = String(input);
       if (url.includes("agent.tinyfish.ai")) {
         return new Response("Payment Required", { status: 402 });
@@ -118,7 +120,7 @@ describe("Unit Suite: TinyFish Web Grounding, SSRF Guards & Fallbacks", () => {
         );
       }
       return new Response("", { status: 404 });
-    }) as unknown as typeof fetch;
+    });
 
     const res = await tinyAgentWithFallback(
       "https://rival.example.com/pricing",

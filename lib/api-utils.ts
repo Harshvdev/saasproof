@@ -60,7 +60,8 @@ export async function parseJsonBodyWithLimit(
   }
 
   try {
-    return { ok: true, data: JSON.parse(rawText) as unknown };
+    const parsed: unknown = JSON.parse(rawText);
+    return { ok: true, data: parsed };
   } catch {
     return {
       ok: false,

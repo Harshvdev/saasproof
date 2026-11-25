@@ -1,11 +1,9 @@
 /**
- * Re-export modular TinyFish search and extraction utilities from `lib/tinyfish/`.
+ * Public TinyFish search and page extraction entrypoints.
  */
+export { hitsToCitations, tinySearch, type SearchHit } from "./tinyfish/search";
 export {
-  hitsToCitations,
   tinyAgentWithFallback,
   tinyFetch,
-  tinySearch,
   type FetchedPage,
-  type SearchHit,
-} from "./tinyfish/index";
+} from "./tinyfish/scrape";
