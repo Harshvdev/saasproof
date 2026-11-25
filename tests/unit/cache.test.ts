@@ -16,7 +16,7 @@ describe("Unit Suite: LRU Memory Cache & Deterministic Hashing", () => {
     clearAllCaches();
   });
 
-  test("hashAnalysisInput normalizes whitespace, case, and parameters", () => {
+  test("hashAnalysisInput normalizes whitespace, case, and avoids delimiter collisions", () => {
     const inputA = {
       idea: "  Autonomous Drone Delivery For Remote Pharmacies  ",
       region: "Global",
@@ -29,12 +29,25 @@ describe("Unit Suite: LRU Memory Cache & Deterministic Hashing", () => {
       businessModel: "Hardware / Climate" as const,
       enableDeepScrape: false,
     };
+    const pipeA = {
+      idea: "idea part a|india",
+      region: "Global",
+      businessModel: "B2B SaaS" as const,
+      enableDeepScrape: true,
+    };
+    const pipeB = {
+      idea: "idea part a",
+      region: "india|Global",
+      businessModel: "B2B SaaS" as const,
+      enableDeepScrape: true,
+    };
 
     const hashA = hashAnalysisInput(inputA);
     const hashB = hashAnalysisInput(inputB);
 
     expect(hashA).toBe(hashB);
     expect(hashA).toMatch(/^[a-f0-9]{64}$/);
+    expect(hashAnalysisInput(pipeA)).not.toBe(hashAnalysisInput(pipeB));
   });
 
   test("stores and retrieves analysis reports with zero latency", () => {
@@ -54,7 +67,8 @@ describe("Unit Suite: LRU Memory Cache & Deterministic Hashing", () => {
   test("caches copilot answers and tracks hits/misses accurately", () => {
     const reportId = "rep_cache_test_99";
     const question = "How do I validate demand without building software?";
-    const answer = "Set up a landing page with a pre-order waitlist and run $100 in search ads.";
+    const answer =
+      "Set up a landing page with a pre-order waitlist and run $100 in search ads.";
 
     const hashKey = hashCopilotQuestion(reportId, question);
     expect(hashKey).toMatch(/^[a-f0-9]{64}$/);
@@ -70,5 +84,22 @@ describe("Unit Suite: LRU Memory Cache & Deterministic Hashing", () => {
     expect(stats.copilot.hits).toBe(1);
     expect(stats.copilot.misses).toBe(1);
     expect(stats.copilot.size).toBe(1);
+  });
+
+  test("evicts least-recently-used entries at capacity while preserving updated keys", () => {
+    const baseReport = DEMO_PRESETS[0];
+    for (let i = 0; i < 120; i++) {
+      setCachedAnalysis(`k_${i}`, { ...baseReport, id: `id_${i}` });
+    }
+    expect(getCacheStats().analysis.size).toBe(120);
+
+    // Promote k_0 via update and insert k_120 -> k_1 should be evicted, k_0 retained
+    setCachedAnalysis("k_0", { ...baseReport, id: "id_0_updated" });
+    setCachedAnalysis("k_120", { ...baseReport, id: "id_120" });
+
+    expect(getCacheStats().analysis.size).toBe(120);
+    expect(getCachedAnalysis("k_0")?.id).toBe("id_0_updated");
+    expect(getCachedAnalysis("k_1")).toBeNull();
+    expect(getCachedAnalysis("k_120")?.id).toBe("id_120");
   });
 });

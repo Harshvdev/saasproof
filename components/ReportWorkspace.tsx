@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { MessageSquareText } from "lucide-react";
+import { scrollElementIntoView } from "@/lib/scroll";
 import type {
   CompetitorOutput,
   CustomerOutput,
@@ -71,8 +72,7 @@ export function ReportWorkspace({
     if (showAllSections) return;
     const idx = TABS.findIndex((t) => t.id === activeTab);
     if (idx !== -1 && tabRefs.current[idx]) {
-      tabRefs.current[idx]?.scrollIntoView({
-        behavior: "smooth",
+      scrollElementIntoView(tabRefs.current[idx], {
         block: "nearest",
         inline: "center",
       });
@@ -117,7 +117,7 @@ export function ReportWorkspace({
     setActiveTab(TABS[nextIdx].id);
     const btn = tabRefs.current[nextIdx];
     btn?.focus();
-    btn?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    scrollElementIntoView(btn, { block: "nearest", inline: "nearest" });
   };
 
   const handleDownloadMarkdown = () => {
@@ -125,13 +125,16 @@ export function ReportWorkspace({
     const md = reportToMarkdown(report);
     const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
     const url = URL.createObjectURL(blob);
+    const slug =
+      report.framer.startupTitle
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "") || "report";
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${report.framer.startupTitle
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")}-saasproof.md`;
+    a.download = `${slug}-saasproof.md`;
     a.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     onShowToast("Exported Markdown validation report");
   };
 
@@ -181,11 +184,14 @@ export function ReportWorkspace({
                 <span className="tab-num">{tab.num}</span>
                 <span>{tab.label}</span>
                 {!ready && (
-                  <span
-                    className="spinner-ring"
-                    style={{ width: "9px", height: "9px" }}
-                    aria-label="Loading"
-                  />
+                  <>
+                    <span
+                      className="spinner-ring"
+                      style={{ width: "9px", height: "9px" }}
+                      aria-hidden="true"
+                    />
+                    <span className="sr-only">Loading {tab.label}</span>
+                  </>
                 )}
               </button>
             );
@@ -195,6 +201,7 @@ export function ReportWorkspace({
         <button
           type="button"
           className="expand-all-btn"
+          aria-pressed={showAllSections}
           onClick={() => setShowAllSections((v) => !v)}
         >
           {showAllSections ? "Tabs" : "Show All"}
@@ -208,7 +215,7 @@ export function ReportWorkspace({
         >
           <MessageSquareText
             className="h-3.5 w-3.5"
-            style={{ color: "var(--orange-500)" }}
+            style={{ color: "var(--orange-700)" }}
             aria-hidden="true"
           />
           <span>Co-Pilot</span>
@@ -221,10 +228,7 @@ export function ReportWorkspace({
         visible={isSectionVisible("overview")}
       />
 
-      <MarketTab
-        market={market}
-        visible={isSectionVisible("market")}
-      />
+      <MarketTab market={market} visible={isSectionVisible("market")} />
 
       <CompetitorsTab
         competitors={competitors}
@@ -237,10 +241,7 @@ export function ReportWorkspace({
         onShowToast={onShowToast}
       />
 
-      <RoadmapTab
-        planner={planner}
-        visible={isSectionVisible("planner")}
-      />
+      <RoadmapTab planner={planner} visible={isSectionVisible("planner")} />
 
       {/* Floating Co-Pilot Pill while reading Report */}
       {report && (
@@ -251,7 +252,7 @@ export function ReportWorkspace({
         >
           <MessageSquareText
             className="h-4 w-4"
-            style={{ color: "var(--orange-500)" }}
+            style={{ color: "var(--orange-700)" }}
             aria-hidden="true"
           />
           <span>Ask Co-Pilot</span>

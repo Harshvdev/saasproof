@@ -1,5 +1,6 @@
 import React from "react";
 import { ArrowRight, Eye, FileText, Laptop, Store, Users } from "lucide-react";
+import { scrollElementIntoView } from "@/lib/scroll";
 import type { StartupReport } from "@/lib/types";
 
 interface ExampleReportsSectionProps {
@@ -50,9 +51,9 @@ export function ExampleReportsSection({
   onUsePrompt,
 }: ExampleReportsSectionProps) {
   const scrollToExamples = () => {
-    document
-      .getElementById("example-reports-section")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    scrollElementIntoView(document.getElementById("example-reports-section"), {
+      block: "start",
+    });
   };
 
   return (

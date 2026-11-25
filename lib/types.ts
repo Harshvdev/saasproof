@@ -1,4 +1,22 @@
 import { z } from "zod";
+import { isSafeHttpUrl } from "./url";
+
+export const BUSINESS_MODELS = [
+  "Auto-detect",
+  "Marketplace",
+  "B2B SaaS",
+  "B2C App",
+  "AI Tool / API",
+  "Hardware / Climate",
+] as const;
+
+export const REGIONS = [
+  "India",
+  "Global",
+  "United States",
+  "US & India Metro Cities",
+  "Europe / UK",
+] as const;
 
 export const AnalysisInputSchema = z.object({
   idea: z
@@ -7,17 +25,20 @@ export const AnalysisInputSchema = z.object({
     .min(10, "Please describe your startup idea in at least 10 characters.")
     .max(1200, "Please keep your idea description under 1200 characters."),
   region: z.string().trim().min(2).max(60).default("India"),
-  businessModel: z
-    .enum(["Auto-detect", "Marketplace", "B2B SaaS", "B2C App", "AI Tool / API", "Hardware / Climate"])
-    .default("Auto-detect"),
+  businessModel: z.enum(BUSINESS_MODELS).default("Auto-detect"),
   enableDeepScrape: z.boolean().default(true),
 });
 
 export type AnalysisInput = z.infer<typeof AnalysisInputSchema>;
 
+export const SafeHttpUrlSchema = z
+  .string()
+  .trim()
+  .refine(isSafeHttpUrl, "URL must use http:// or https://");
+
 export const SourceCitationSchema = z.object({
   title: z.string().default("Source"),
-  url: z.string(),
+  url: SafeHttpUrlSchema,
   domain: z.string().default("web"),
 });
 
@@ -58,7 +79,7 @@ export type MarketOutput = z.infer<typeof MarketOutputSchema>;
 
 export const CompetitorItemSchema = z.object({
   name: z.string(),
-  url: z.string(),
+  url: SafeHttpUrlSchema,
   positioning: z.string(),
   pricingModel: z.string(),
   strengths: z.array(z.string()).min(1).max(3),
@@ -93,7 +114,7 @@ export type CustomerPersona = z.infer<typeof CustomerPersonaSchema>;
 
 export const CustomerOutputSchema = z.object({
   targetSummary: z.string().default("Early adopter customer summary."),
-  personas: z.array(CustomerPersonaSchema).min(1).max(4).default([]),
+  personas: z.array(CustomerPersonaSchema).min(1).max(4),
   interviewQuestions: z
     .array(z.string())
     .min(1)
@@ -158,32 +179,6 @@ export const PlannerOutputSchema = z.object({
 
 export type PlannerOutput = z.infer<typeof PlannerOutputSchema>;
 
-export const CopilotRequestSchema = z.object({
-  question: z.string().trim().min(3).max(600),
-  useLiveWeb: z.boolean().default(false),
-  report: z.custom<StartupReport>((v) => Boolean(v && typeof v === "object")),
-  history: z
-    .array(
-      z.object({
-        role: z.enum(["user", "assistant"]),
-        content: z.string(),
-      })
-    )
-    .max(12)
-    .default([]),
-});
-export type CopilotRequest = z.infer<typeof CopilotRequestSchema>;
-
-export interface UsageQuotaInfo {
-  analysesRemaining: number;
-  analysesLimit: number;
-  deepScrapesRemaining: number;
-  deepScrapesLimit: number;
-  copilotMessagesRemaining: number;
-  copilotMessagesLimit: number;
-  resetWindowHours: number;
-}
-
 export const StartupReportSchema = z.object({
   id: z.string(),
   createdAt: z.string(),
@@ -207,66 +202,100 @@ export const StartupReportSchema = z.object({
 
 export type StartupReport = z.infer<typeof StartupReportSchema>;
 
-export type AgentNodeId =
-  | "framer"
-  | "market"
-  | "competitors"
-  | "customers"
-  | "validator"
-  | "planner";
+export const CopilotRequestSchema = z.object({
+  question: z.string().trim().min(3).max(600),
+  useLiveWeb: z.boolean().default(false),
+  report: StartupReportSchema,
+  history: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string().trim().min(1).max(1500),
+      })
+    )
+    .max(12)
+    .default([]),
+});
 
-export type AgentSSEEvent =
-  | {
-      type: "quota";
-      quota: UsageQuotaInfo;
-    }
-  | {
-      type: "stage";
-      agent: AgentNodeId;
-      status: "running" | "done" | "fallback";
-      message: string;
-      queries?: string[];
-      sources?: SourceCitation[];
-      provider?: string;
-    }
-  | {
-      type: "partial";
-      section: "framer";
-      data: FramerOutput;
-    }
-  | {
-      type: "partial";
-      section: "market";
-      data: MarketOutput;
-    }
-  | {
-      type: "partial";
-      section: "competitors";
-      data: CompetitorOutput;
-    }
-  | {
-      type: "partial";
-      section: "customers";
-      data: CustomerOutput;
-    }
-  | {
-      type: "partial";
-      section: "validator";
-      data: ValidatorOutput;
-    }
-  | {
-      type: "partial";
-      section: "planner";
-      data: PlannerOutput;
-    }
-  | {
-      type: "complete";
-      report: StartupReport;
-      quota: UsageQuotaInfo;
-    }
-  | {
-      type: "error";
-      message: string;
-      quota?: UsageQuotaInfo;
-    };
+export type CopilotRequest = z.infer<typeof CopilotRequestSchema>;
 
+export const UsageQuotaInfoSchema = z.object({
+  analysesRemaining: z.number(),
+  analysesLimit: z.number(),
+  deepScrapesRemaining: z.number(),
+  deepScrapesLimit: z.number(),
+  copilotMessagesRemaining: z.number(),
+  copilotMessagesLimit: z.number(),
+  resetWindowHours: z.number(),
+});
+
+export type UsageQuotaInfo = z.infer<typeof UsageQuotaInfoSchema>;
+
+export const AgentNodeIdSchema = z.enum([
+  "framer",
+  "market",
+  "competitors",
+  "customers",
+  "validator",
+  "planner",
+]);
+
+export type AgentNodeId = z.infer<typeof AgentNodeIdSchema>;
+
+export const AgentSSEEventSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("quota"),
+    quota: UsageQuotaInfoSchema,
+  }),
+  z.object({
+    type: z.literal("stage"),
+    agent: AgentNodeIdSchema,
+    status: z.enum(["running", "done", "fallback"]),
+    message: z.string(),
+    queries: z.array(z.string()).optional(),
+    sources: z.array(SourceCitationSchema).optional(),
+    provider: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal("partial"),
+    section: z.literal("framer"),
+    data: FramerOutputSchema,
+  }),
+  z.object({
+    type: z.literal("partial"),
+    section: z.literal("market"),
+    data: MarketOutputSchema,
+  }),
+  z.object({
+    type: z.literal("partial"),
+    section: z.literal("competitors"),
+    data: CompetitorOutputSchema,
+  }),
+  z.object({
+    type: z.literal("partial"),
+    section: z.literal("customers"),
+    data: CustomerOutputSchema,
+  }),
+  z.object({
+    type: z.literal("partial"),
+    section: z.literal("validator"),
+    data: ValidatorOutputSchema,
+  }),
+  z.object({
+    type: z.literal("partial"),
+    section: z.literal("planner"),
+    data: PlannerOutputSchema,
+  }),
+  z.object({
+    type: z.literal("complete"),
+    report: StartupReportSchema,
+    quota: UsageQuotaInfoSchema,
+  }),
+  z.object({
+    type: z.literal("error"),
+    message: z.string(),
+    quota: UsageQuotaInfoSchema.optional(),
+  }),
+]);
+
+export type AgentSSEEvent = z.infer<typeof AgentSSEEventSchema>;

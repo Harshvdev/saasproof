@@ -1,5 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 import type { CompetitorOutput } from "@/lib/types";
+import { sanitizeSafeUrl } from "@/lib/url";
 import { LoadingBlock } from "./LoadingBlock";
 
 interface CompetitorsTabProps {
@@ -8,7 +9,7 @@ interface CompetitorsTabProps {
 }
 
 /**
- * CompetitorsTab displays the competitor landscape matrix, threat ratings, verified URLs,
+ * CompetitorsTab displays the competitor landscape matrix, threat ratings, sanitized URLs,
  * live pricing models, feature gaps, and the identified white-space opportunity.
  *
  * @param props - CompetitorsTabProps with competitor intel output and visibility state.
@@ -27,6 +28,7 @@ export function CompetitorsTab({ competitors, visible }: CompetitorsTabProps) {
         <LoadingBlock message="Competitor Intel agent is analyzing rival pricing and whitespace gaps..." />
       ) : (
         <div>
+          <h2 className="sr-only">Competitive Landscape and White-Space Analysis</h2>
           <div className="whitespace-banner">
             <div className="panel-kicker">White-Space Opportunity</div>
             <h3
@@ -62,32 +64,45 @@ export function CompetitorsTab({ competitors, visible }: CompetitorsTabProps) {
           </div>
 
           <div className="competitor-grid">
-            {competitors.competitors.map((comp) => {
+            {competitors.competitors.map((comp, idx) => {
               const threatCls =
                 comp.threatLevel === "High"
                   ? "sev-critical"
                   : comp.threatLevel === "Medium"
                     ? "sev-high"
                     : "sev-medium";
+              const safeHref = sanitizeSafeUrl(comp.url);
+
               return (
-                <article key={comp.name} className="comp-card">
+                <article key={`${comp.name}-${idx}`} className="comp-card">
                   <div className="comp-head">
                     <div>
-                      <a
-                        href={comp.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="comp-name-link"
+                      <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 800 }}>
+                        {safeHref ? (
+                          <a
+                            href={safeHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="comp-name-link"
+                          >
+                            <span>{comp.name}</span>
+                            <ArrowUpRight
+                              className="h-4 w-4"
+                              style={{ color: "var(--orange-700)" }}
+                              aria-hidden="true"
+                            />
+                          </a>
+                        ) : (
+                          <span className="comp-name-link">{comp.name}</span>
+                        )}
+                      </h3>
+                      <div
+                        className="preset-meta-tags"
+                        style={{ marginTop: "6px", marginBottom: 0 }}
                       >
-                        <span>{comp.name}</span>
-                        <ArrowUpRight
-                          className="h-4 w-4"
-                          style={{ color: "var(--orange-600)" }}
-                          aria-hidden="true"
-                        />
-                      </a>
-                      <div className="preset-meta-tags" style={{ marginTop: "6px", marginBottom: 0 }}>
-                        <span className="tag-pill mono">{comp.extractionMethod}</span>
+                        <span className="tag-pill mono">
+                          {comp.extractionMethod}
+                        </span>
                       </div>
                     </div>
 
@@ -114,7 +129,13 @@ export function CompetitorsTab({ competitors, visible }: CompetitorsTabProps) {
                       background: "var(--bg-subtle)",
                     }}
                   >
-                    <strong style={{ color: "var(--text-muted)", fontSize: "0.72rem", textTransform: "uppercase" }}>
+                    <strong
+                      style={{
+                        color: "var(--text-muted)",
+                        fontSize: "0.72rem",
+                        textTransform: "uppercase",
+                      }}
+                    >
                       Pricing:{" "}
                     </strong>
                     <span style={{ fontWeight: 600 }}>{comp.pricingModel}</span>
@@ -122,18 +143,42 @@ export function CompetitorsTab({ competitors, visible }: CompetitorsTabProps) {
 
                   <div className="comp-cols">
                     <div className="comp-mini-box">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--emerald-text)" }}>Strengths</h4>
-                      <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "4px" }}>
-                        {comp.strengths.map((s) => (
-                          <li key={s}>• {s}</li>
+                      <h4
+                        className="text-xs font-semibold uppercase tracking-wider"
+                        style={{ color: "var(--emerald-text)" }}
+                      >
+                        Strengths
+                      </h4>
+                      <ul
+                        style={{
+                          listStyle: "none",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "4px",
+                        }}
+                      >
+                        {comp.strengths.map((s, sIdx) => (
+                          <li key={`str-${sIdx}`}>• {s}</li>
                         ))}
                       </ul>
                     </div>
                     <div className="comp-mini-box">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--orange-600)" }}>Gaps to Exploit</h4>
-                      <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "4px" }}>
-                        {comp.weaknessesOrGaps.map((g) => (
-                          <li key={g}>→ {g}</li>
+                      <h4
+                        className="text-xs font-semibold uppercase tracking-wider"
+                        style={{ color: "var(--orange-700)" }}
+                      >
+                        Gaps to Exploit
+                      </h4>
+                      <ul
+                        style={{
+                          listStyle: "none",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "4px",
+                        }}
+                      >
+                        {comp.weaknessesOrGaps.map((g, gIdx) => (
+                          <li key={`gap-${gIdx}`}>→ {g}</li>
                         ))}
                       </ul>
                     </div>

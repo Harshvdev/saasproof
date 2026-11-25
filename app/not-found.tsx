@@ -6,9 +6,10 @@ import { ArrowLeft, FileQuestion } from "lucide-react";
  */
 export default function NotFound() {
   return (
-    <div
-      role="region"
-      aria-label="404 Not Found"
+    <main
+      id="main-content"
+      tabIndex={-1}
+      aria-labelledby="not-found-title"
       style={{
         minHeight: "75vh",
         display: "flex",
@@ -25,7 +26,7 @@ export default function NotFound() {
           height: "56px",
           borderRadius: "14px",
           background: "var(--orange-50, #fff7ed)",
-          color: "var(--orange-600, #ea580c)",
+          color: "var(--orange-700, #c2410c)",
           border: "1px solid var(--orange-200, #fed7aa)",
           display: "grid",
           placeItems: "center",
@@ -36,6 +37,7 @@ export default function NotFound() {
       </div>
 
       <h1
+        id="not-found-title"
         style={{
           fontSize: "1.75rem",
           fontWeight: 800,
@@ -55,8 +57,8 @@ export default function NotFound() {
           lineHeight: 1.6,
         }}
       >
-        The startup validation report or page you requested does not exist or may have
-        expired from temporary cache.
+        The startup validation report or page you requested does not exist or
+        may have expired from temporary cache.
       </p>
 
       <Link
@@ -76,6 +78,6 @@ export default function NotFound() {
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         <span>Return to SaaSProof</span>
       </Link>
-    </div>
+    </main>
   );
 }

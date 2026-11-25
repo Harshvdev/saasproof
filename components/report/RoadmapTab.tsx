@@ -26,6 +26,7 @@ export function RoadmapTab({ planner, visible }: RoadmapTabProps) {
         <LoadingBlock message="Execution Planner agent is compiling your 90-day MVP & GTM roadmap..." />
       ) : (
         <div>
+          <h2 className="sr-only">90-Day MVP and Go-To-Market Execution Plan</h2>
           <div className="section-equal-2">
             <div className="panel-card" style={{ marginBottom: 0 }}>
               <div className="panel-kicker">Recommended Launch Wedge</div>
@@ -44,34 +45,40 @@ export function RoadmapTab({ planner, visible }: RoadmapTabProps) {
           <div className="section-equal-2">
             <div className="panel-card" style={{ marginBottom: 0 }}>
               <div className="panel-header">
-                <h3 className="panel-title" style={{ color: "var(--emerald-text)" }}>
+                <h3
+                  className="panel-title"
+                  style={{ color: "var(--emerald-text)" }}
+                >
                   Must-Build
                 </h3>
               </div>
               <ul className="wind-list">
-                {planner.mvpFeatures.mustBuild.map((item) => (
-                  <li key={item}>✓ {item}</li>
+                {planner.mvpFeatures.mustBuild.map((item, idx) => (
+                  <li key={`must-${idx}`}>✓ {item}</li>
                 ))}
               </ul>
             </div>
 
             <div className="panel-card" style={{ marginBottom: 0 }}>
               <div className="panel-header">
-                <h3 className="panel-title" style={{ color: "var(--text-muted)" }}>
+                <h3
+                  className="panel-title"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   Skip For Now
                 </h3>
               </div>
               <ul className="wind-list">
-                {planner.mvpFeatures.skipForNow.map((item) => (
-                  <li key={item}>✕ {item}</li>
+                {planner.mvpFeatures.skipForNow.map((item, idx) => (
+                  <li key={`skip-${idx}`}>✕ {item}</li>
                 ))}
               </ul>
             </div>
           </div>
 
           <div className="phases-grid">
-            {planner.roadmap.map((phase) => (
-              <article key={phase.phase} className="phase-card">
+            {planner.roadmap.map((phase, pIdx) => (
+              <article key={`${phase.phase}-${pIdx}`} className="phase-card">
                 <div>
                   <span className="phase-badge">{phase.timeframe}</span>
                   <h3
@@ -101,8 +108,8 @@ export function RoadmapTab({ planner, visible }: RoadmapTabProps) {
                       fontSize: "0.82rem",
                     }}
                   >
-                    {phase.actions.map((act) => (
-                      <li key={act}>• {act}</li>
+                    {phase.actions.map((act, aIdx) => (
+                      <li key={`act-${aIdx}`}>• {act}</li>
                     ))}
                   </ul>
                 </div>

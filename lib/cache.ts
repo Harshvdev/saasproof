@@ -28,15 +28,16 @@ class MemoryCache<T> {
     }
 
     this.hits += 1;
-    // Re-insert to keep LRU order
+    // Re-insert to maintain MRU order
     this.store.delete(key);
     this.store.set(key, entry);
     return entry.value;
   }
 
   set(key: string, value: T, ttlMs = DEFAULT_TTL_MS): void {
-    if (this.store.size >= MAX_ENTRIES) {
-      // Evict oldest entry (first key in map iterator)
+    if (this.store.has(key)) {
+      this.store.delete(key);
+    } else if (this.store.size >= MAX_ENTRIES) {
       const oldestKey = this.store.keys().next().value;
       if (oldestKey) this.store.delete(oldestKey);
     }
@@ -67,18 +68,19 @@ const copilotCache = new MemoryCache<string>();
 
 /**
  * Computes a deterministic SHA-256 cache key from normalized user analysis parameters.
- * Whitespace is trimmed and case is normalized to guarantee cache hits on identical queries.
+ * Whitespace is trimmed and case is normalized to guarantee cache hits on identical queries
+ * without delimiter collision.
  *
  * @param input - The raw founder AnalysisInput parameters.
  * @returns 64-character hexadecimal SHA-256 hash string.
  */
 export function hashAnalysisInput(input: AnalysisInput): string {
-  const normalized = [
+  const normalized = JSON.stringify([
     input.idea.trim().toLowerCase(),
     (input.region || "India").trim().toLowerCase(),
     (input.businessModel || "Auto-detect").trim().toLowerCase(),
     input.enableDeepScrape ? "1" : "0",
-  ].join("|");
+  ]);
 
   return createHash("sha256").update(normalized).digest("hex");
 }
@@ -111,7 +113,10 @@ export function setCachedAnalysis(key: string, report: StartupReport): void {
  * @returns 64-character hexadecimal SHA-256 hash string.
  */
 export function hashCopilotQuestion(reportId: string, question: string): string {
-  const normalized = `${reportId.trim()}:${question.trim().toLowerCase()}`;
+  const normalized = JSON.stringify([
+    reportId.trim(),
+    question.trim().toLowerCase(),
+  ]);
   return createHash("sha256").update(normalized).digest("hex");
 }
 

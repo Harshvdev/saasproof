@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
 import {
   AnalysisInputSchema,
   CopilotRequestSchema,
@@ -15,6 +15,7 @@ import {
   consumeCopilotQuota,
   getQuotaSnapshot,
   QUOTA_LIMITS,
+  resetRateLimits,
 } from "../lib/rate-limit";
 import { DEMO_PRESETS } from "../lib/presets";
 import { reportToMarkdown } from "../lib/export";
@@ -28,6 +29,11 @@ import {
   setCachedAnalysis,
   setCachedCopilot,
 } from "../lib/cache";
+
+beforeEach(() => {
+  resetRateLimits();
+  clearAllCaches();
+});
 
 describe("SaaSProof: Input & Schema Validation", () => {
   test("accepts a comprehensive valid startup idea input", () => {

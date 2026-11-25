@@ -9,7 +9,7 @@ interface GlobalErrorProps {
 
 /**
  * Root-level error boundary capturing catastrophic layout failures.
- * Next.js global-error.tsx must define its own <html> and <body> tags.
+ * Next.js global-error.tsx must define its own `<html>` and `<body>` tags.
  */
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
@@ -32,56 +32,58 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
           padding: "24px",
         }}
       >
-        <div
-          role="alert"
-          style={{
-            maxWidth: "480px",
-            textAlign: "center",
-            padding: "32px",
-            borderRadius: "16px",
-            background: "#ffffff",
-            border: "1px solid #e6e3dc",
-            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.05)",
-          }}
-        >
-          <h1
+        <main id="main-content" tabIndex={-1}>
+          <div
+            role="alert"
             style={{
-              fontSize: "1.5rem",
-              fontWeight: 800,
-              marginBottom: "10px",
-              color: "#c2410c",
+              maxWidth: "480px",
+              textAlign: "center",
+              padding: "32px",
+              borderRadius: "16px",
+              background: "#ffffff",
+              border: "1px solid #e6e3dc",
+              boxShadow: "0 10px 25px rgba(0, 0, 0, 0.05)",
             }}
           >
-            System Recovery Mode
-          </h1>
-          <p
-            style={{
-              fontSize: "0.95rem",
-              color: "#524e48",
-              lineHeight: 1.6,
-              marginBottom: "24px",
-            }}
-          >
-            A root-level layout error was encountered. Click below to re-initialize
-            the application.
-          </p>
-          <button
-            type="button"
-            onClick={() => reset()}
-            style={{
-              background: "#ea580c",
-              color: "#ffffff",
-              border: "none",
-              padding: "10px 22px",
-              borderRadius: "999px",
-              fontWeight: 700,
-              fontSize: "0.9rem",
-              cursor: "pointer",
-            }}
-          >
-            Reload Application
-          </button>
-        </div>
+            <h1
+              style={{
+                fontSize: "1.5rem",
+                fontWeight: 800,
+                marginBottom: "10px",
+                color: "#c2410c",
+              }}
+            >
+              System Recovery Mode
+            </h1>
+            <p
+              style={{
+                fontSize: "0.95rem",
+                color: "#524e48",
+                lineHeight: 1.6,
+                marginBottom: "24px",
+              }}
+            >
+              A root-level layout error was encountered. Click below to
+              re-initialize the application.
+            </p>
+            <button
+              type="button"
+              onClick={() => reset()}
+              style={{
+                background: "#c2410c",
+                color: "#ffffff",
+                border: "none",
+                padding: "10px 22px",
+                borderRadius: "999px",
+                fontWeight: 700,
+                fontSize: "0.9rem",
+                cursor: "pointer",
+              }}
+            >
+              Reload Application
+            </button>
+          </div>
+        </main>
       </body>
     </html>
   );

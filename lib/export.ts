@@ -1,4 +1,10 @@
 import type { StartupReport } from "./types";
+import { sanitizeSafeUrl } from "./url";
+
+function formatSafeLink(label: string, rawUrl: string): string {
+  const safe = sanitizeSafeUrl(rawUrl);
+  return safe ? `[${label}](${safe})` : label;
+}
 
 /**
  * Serializes a full StartupReport validation dossier into a clean,
@@ -10,11 +16,27 @@ import type { StartupReport } from "./types";
 export function reportToMarkdown(report: StartupReport): string {
   const { framer, market, competitors, customers, validator, planner } = report;
 
+  const allSources = [
+    ...market.sources,
+    ...competitors.sources,
+    ...customers.sources,
+  ];
+  const uniqueSources = Array.from(
+    new Map(
+      allSources
+        .map((s) => {
+          const safe = sanitizeSafeUrl(s.url);
+          return safe ? ([safe, { ...s, url: safe }] as const) : null;
+        })
+        .filter((entry): entry is readonly [string, (typeof allSources)[number]] => entry !== null)
+    ).values()
+  );
+
   const lines: string[] = [
     `# ${framer.startupTitle} — SaaSProof Validation Report`,
     `> ${framer.oneLiner}`,
     ``,
-    `- **Generated:** ${new Date(report.createdAt).toLocaleString()}`,
+    `- **Generated:** ${new Date(report.createdAt).toISOString()}`,
     `- **Category / Model:** ${framer.category} • ${framer.detectedModel}`,
     `- **Target Region:** ${framer.targetGeography}`,
     `- **Viability Score:** **${validator.overallScore}/100** (${validator.verdictBadge})`,
@@ -69,7 +91,7 @@ export function reportToMarkdown(report: StartupReport): string {
     ``,
     ...competitors.competitors.map(
       (c) =>
-        `### ${c.name} (${c.threatLevel} Threat) — ${c.url}\n- **Positioning:** ${c.positioning}\n- **Pricing:** ${c.pricingModel}\n- **Strengths:** ${c.strengths.join("; ")}\n- **Gaps:** ${c.weaknessesOrGaps.join("; ")}`
+        `### ${c.name} (${c.threatLevel} Threat) — ${sanitizeSafeUrl(c.url) ?? "unverified URL"}\n- **Positioning:** ${c.positioning}\n- **Pricing:** ${c.pricingModel}\n- **Strengths:** ${c.strengths.join("; ")}\n- **Gaps:** ${c.weaknessesOrGaps.join("; ")}`
     ),
     ``,
     `---`,
@@ -100,6 +122,16 @@ export function reportToMarkdown(report: StartupReport): string {
         `### ${phase.phase} (${phase.timeframe})\n- **Objective:** ${phase.objective}\n- **Success Metric:** ${phase.successMetric}\n${phase.actions.map((a) => `  - [ ] ${a}`).join("\n")}`
     ),
   ];
+
+  if (uniqueSources.length > 0) {
+    lines.push(
+      ``,
+      `---`,
+      ``,
+      `## 6. Verified Grounding Citations`,
+      ...uniqueSources.map((s) => `- ${formatSafeLink(s.title, s.url)} (${s.domain})`)
+    );
+  }
 
   return lines.join("\n");
 }

@@ -24,7 +24,11 @@ export function VerdictGauge({ score, badge }: VerdictGaugeProps) {
         : "score-low";
 
   return (
-    <div className="score-showcase">
+    <div
+      className="score-showcase"
+      role="group"
+      aria-label={`Overall viability score ${clamped} out of 100, verdict ${badge}`}
+    >
       <div className="gauge-wrap">
         <svg viewBox="0 0 176 176" className="h-full w-full -rotate-90" aria-hidden="true">
           <circle
@@ -40,7 +44,7 @@ export function VerdictGauge({ score, badge }: VerdictGaugeProps) {
             cy="88"
             r={radius}
             fill="none"
-            stroke="url(#sparkGaugeGrad)"
+            stroke="url(#saasproofGaugeGrad)"
             strokeWidth="12"
             strokeLinecap="round"
             strokeDasharray={circumference}
@@ -48,13 +52,13 @@ export function VerdictGauge({ score, badge }: VerdictGaugeProps) {
             style={{ transition: "stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1)" }}
           />
           <defs>
-            <linearGradient id="sparkGaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <linearGradient id="saasproofGaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#F97316" />
-              <stop offset="100%" stopColor="#EA580C" />
+              <stop offset="100%" stopColor="#C2410C" />
             </linearGradient>
           </defs>
         </svg>
-        <div className="gauge-center">
+        <div className="gauge-center" aria-hidden="true">
           <span className="gauge-number">{clamped}</span>
           <span className="gauge-max">/ 100</span>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
   CalendarCheck,
@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import type { AgentNodeId, SourceCitation } from "@/lib/types";
+import { sanitizeSafeUrl } from "@/lib/url";
 
 export interface AgentNodeState {
   id: AgentNodeId;
@@ -55,40 +56,50 @@ const NODE_ICONS: Record<AgentNodeId, React.ElementType> = {
   planner: CalendarCheck,
 };
 
-/**
- * AgentMissionControl provides a live terminal visualization of the autonomous multi-agent pipeline.
- * Displays real-time status badges, live search queries, fetched sources, pause/resume controls,
- * and an estimated progress timeline.
- *
- * @param props - AgentMissionControlProps containing active nodes, streaming state, and pause controls.
- * @returns Fully rendered mission control progress interface.
- */
-export function AgentMissionControl({
-  ideaText,
-  startupTitle,
-  nodes,
+function MissionProgressFooter({
   isRunning,
   isPaused,
-  hasPartialReport,
-  onTogglePause,
-  onSkipToReport,
-}: AgentMissionControlProps) {
+  completedCount,
+}: {
+  isRunning: boolean;
+  isPaused: boolean;
+  completedCount: number;
+}) {
   const [elapsedMs, setElapsedMs] = useState(0);
+  const accumulatedRef = useRef(0);
+  const segmentStartRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!isRunning) return;
-    const start = Date.now();
-    const timer = setInterval(() => {
-      if (!isPaused) {
-        setElapsedMs(Date.now() - start);
-      }
-    }, 100);
-    return () => clearInterval(timer);
-  }, [isRunning, isPaused]);
+    if (!isRunning) {
+      segmentStartRef.current = null;
+      return;
+    }
 
-  const completedCount = ORDERED_AGENTS.filter(
-    (id) => nodes[id].status === "done" || nodes[id].status === "fallback"
-  ).length;
+    if (isPaused) {
+      if (segmentStartRef.current !== null) {
+        accumulatedRef.current += Date.now() - segmentStartRef.current;
+        segmentStartRef.current = null;
+      }
+      return;
+    }
+
+    segmentStartRef.current = Date.now();
+    const timer = setInterval(() => {
+      if (segmentStartRef.current !== null) {
+        setElapsedMs(
+          accumulatedRef.current + (Date.now() - segmentStartRef.current)
+        );
+      }
+    }, 250);
+
+    return () => {
+      clearInterval(timer);
+      if (segmentStartRef.current !== null) {
+        accumulatedRef.current += Date.now() - segmentStartRef.current;
+        segmentStartRef.current = null;
+      }
+    };
+  }, [isRunning, isPaused]);
 
   // Expected live run target: ~68 seconds for deep multi-agent web retrieval
   const estSecondsRemaining = Math.max(
@@ -118,11 +129,65 @@ export function AgentMissionControl({
     .padStart(4, "0")}s`;
 
   return (
-    <section className="view-enter" aria-live="polite">
+    <>
+      <div className="orch-progress-meta">
+        <span className="orch-stage-label">{stageLabel}</span>
+        <div className="orch-timer-group">
+          {isRunning && (
+            <span className="orch-est-badge">
+              <span className="orch-timer-label">ETA</span>
+              <span className="mono">~{estSecondsRemaining}s left</span>
+            </span>
+          )}
+          {isRunning && <span className="orch-divider" aria-hidden="true" />}
+          <span className="orch-time-badge">
+            <span className="orch-timer-label">Elapsed</span>
+            <span className="mono orch-time-val">{formattedTime}</span>
+          </span>
+        </div>
+      </div>
+      <div
+        className="orch-track"
+        role="progressbar"
+        aria-label="Validation pipeline progress"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={progressPct}
+      >
+        <div className="orch-fill" style={{ width: `${progressPct}%` }} />
+      </div>
+    </>
+  );
+}
+
+/**
+ * AgentMissionControl provides a live terminal visualization of the autonomous multi-agent pipeline.
+ * Displays real-time status badges, live search queries, fetched sources, pause/resume controls,
+ * and an isolated progress timer that preserves elapsed time across pauses.
+ *
+ * @param props - AgentMissionControlProps containing active nodes, streaming state, and pause controls.
+ * @returns Fully rendered mission control progress interface.
+ */
+export function AgentMissionControl({
+  ideaText,
+  startupTitle,
+  nodes,
+  isRunning,
+  isPaused,
+  hasPartialReport,
+  onTogglePause,
+  onSkipToReport,
+}: AgentMissionControlProps) {
+  const completedCount = ORDERED_AGENTS.filter(
+    (id) => nodes[id].status === "done" || nodes[id].status === "fallback"
+  ).length;
+
+  return (
+    <section className="view-enter">
       <div className="orchestrator-header">
         <div className="orch-top-row">
           <div>
-            <div className="orch-status-badge">
+            <div className="orch-status-badge" aria-live="polite">
               {isRunning ? (
                 <span className="spinner-ring" aria-hidden="true" />
               ) : (
@@ -136,9 +201,9 @@ export function AgentMissionControl({
                   : "DONE"}
               </span>
             </div>
-            <h2 className="orch-title">
+            <h1 className="orch-title">
               {startupTitle || "Validating Startup"}
-            </h2>
+            </h1>
             <p className="orch-idea-preview">{ideaText}</p>
           </div>
 
@@ -165,25 +230,11 @@ export function AgentMissionControl({
           </div>
         </div>
 
-        <div className="orch-progress-meta">
-          <span className="orch-stage-label">{stageLabel}</span>
-          <div className="orch-timer-group">
-            {isRunning && (
-              <span className="orch-est-badge">
-                <span className="orch-timer-label">ETA</span>
-                <span className="mono">~{estSecondsRemaining}s left</span>
-              </span>
-            )}
-            {isRunning && <span className="orch-divider" aria-hidden="true" />}
-            <span className="orch-time-badge">
-              <span className="orch-timer-label">Elapsed</span>
-              <span className="mono orch-time-val">{formattedTime}</span>
-            </span>
-          </div>
-        </div>
-        <div className="orch-track">
-          <div className="orch-fill" style={{ width: `${progressPct}%` }} />
-        </div>
+        <MissionProgressFooter
+          isRunning={isRunning}
+          isPaused={isPaused}
+          completedCount={completedCount}
+        />
       </div>
 
       <div className="agents-grid">
@@ -206,7 +257,7 @@ export function AgentMissionControl({
                     )}
                   </div>
                   <div>
-                    <h3 className="agent-name">{node.label}</h3>
+                    <h2 className="agent-name">{node.label}</h2>
                     <p className="agent-model-provider">
                       {node.provider
                         ? `${node.role} · ${node.provider}`
@@ -235,8 +286,8 @@ export function AgentMissionControl({
 
               {node.queries.length > 0 && (
                 <div className="query-chips">
-                  {node.queries.slice(0, 3).map((q) => (
-                    <span key={q} className="query-chip">
+                  {node.queries.slice(0, 3).map((q, idx) => (
+                    <span key={`${id}-q-${idx}`} className="query-chip">
                       <Search className="h-3 w-3" aria-hidden="true" />
                       <span>{q}</span>
                     </span>
@@ -246,18 +297,22 @@ export function AgentMissionControl({
 
               {node.sources.length > 0 && (
                 <div className="source-chips">
-                  {node.sources.slice(0, 4).map((src) => (
-                    <a
-                      key={src.url}
-                      href={src.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="source-link-chip"
-                    >
-                      <span>{src.domain}</span>
-                      <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                    </a>
-                  ))}
+                  {node.sources.slice(0, 4).map((src, idx) => {
+                    const safeHref = sanitizeSafeUrl(src.url);
+                    if (!safeHref) return null;
+                    return (
+                      <a
+                        key={`${safeHref}-${idx}`}
+                        href={safeHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="source-link-chip"
+                      >
+                        <span>{src.domain}</span>
+                        <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                      </a>
+                    );
+                  })}
                 </div>
               )}
             </article>

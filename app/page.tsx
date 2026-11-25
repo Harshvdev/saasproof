@@ -6,6 +6,7 @@ import { CheckCircle2 } from "lucide-react";
 import { LandingPage } from "@/components/LandingPage";
 import { Navbar } from "@/components/Navbar";
 import { useStartupAnalysis } from "@/hooks/useStartupAnalysis";
+import { scrollToTop } from "@/lib/scroll";
 
 const ReportWorkspace = dynamic(
   () => import("@/components/ReportWorkspace").then((mod) => mod.ReportWorkspace),
@@ -13,7 +14,10 @@ const ReportWorkspace = dynamic(
 );
 
 const AgentMissionControl = dynamic(
-  () => import("@/components/AgentMissionControl").then((mod) => mod.AgentMissionControl),
+  () =>
+    import("@/components/AgentMissionControl").then(
+      (mod) => mod.AgentMissionControl
+    ),
   { ssr: false }
 );
 
@@ -48,6 +52,7 @@ export default function HomePage() {
     errorMessage,
     historyOpen,
     copilotOpen,
+    reportSessionKey,
     toastMessage,
     hasPartialReport,
     handleToggleTheme,
@@ -63,6 +68,19 @@ export default function HomePage() {
     showToast,
   } = useStartupAnalysis();
 
+  const [historyMounted, setHistoryMounted] = React.useState(false);
+  const [copilotMounted, setCopilotMounted] = React.useState(false);
+
+  const openHistory = () => {
+    setHistoryMounted(true);
+    setHistoryOpen(true);
+  };
+
+  const openCopilot = () => {
+    setCopilotMounted(true);
+    setCopilotOpen(true);
+  };
+
   return (
     <>
       <div className="ambient-backdrop" aria-hidden="true" />
@@ -71,8 +89,9 @@ export default function HomePage() {
         quota={quota}
         historyCount={history.length}
         theme={theme}
+        viewMode={viewMode}
         onToggleTheme={handleToggleTheme}
-        onOpenHistory={() => setHistoryOpen(true)}
+        onOpenHistory={openHistory}
         onResetToHero={handleResetToHero}
       />
 
@@ -109,7 +128,9 @@ export default function HomePage() {
         {viewMode === "validating" && runningIdeaText && (
           <AgentMissionControl
             ideaText={runningIdeaText}
-            startupTitle={activeReport?.framer.startupTitle ?? partial.framer?.startupTitle}
+            startupTitle={
+              activeReport?.framer.startupTitle ?? partial.framer?.startupTitle
+            }
             nodes={nodes}
             isRunning={isRunning}
             isPaused={isPaused}
@@ -118,17 +139,18 @@ export default function HomePage() {
             onSkipToReport={() => {
               if (isPaused) handleTogglePause();
               setViewMode("report");
-              window.scrollTo({ top: 0, behavior: "smooth" });
+              scrollToTop();
             }}
           />
         )}
 
         {viewMode === "report" && (
           <ReportWorkspace
+            key={reportSessionKey}
             report={activeReport}
             partial={partial}
             isRunning={isRunning}
-            onOpenCopilot={() => setCopilotOpen(true)}
+            onOpenCopilot={openCopilot}
             onRerunLive={() => {
               if (activeReport) {
                 runLiveAnalysis(activeReport.input);
@@ -138,7 +160,7 @@ export default function HomePage() {
               isRunning && runningIdeaText
                 ? () => {
                     setViewMode("validating");
-                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    scrollToTop();
                   }
                 : undefined
             }
@@ -147,28 +169,39 @@ export default function HomePage() {
         )}
       </main>
 
-      <HistoryDrawer
-        open={historyOpen}
-        reports={history}
-        activeReportId={activeReport?.id ?? null}
-        onClose={() => setHistoryOpen(false)}
-        onSelectReport={(rep) => {
-          handleLoadPreset(rep);
-        }}
-        onDeleteReport={handleDeleteReport}
-      />
+      <footer className="lp-footer no-print">
+        <p>
+          SaaSProof · Multi-Agent Startup Co-Pilot (PS08) · Grounded market
+          research, competitor intelligence, and unit economics modeling.
+        </p>
+      </footer>
 
-      <CopilotDrawer
-        key={activeReport?.id ?? "empty"}
-        open={copilotOpen}
-        report={activeReport}
-        onClose={() => setCopilotOpen(false)}
-        onQuotaUpdate={(q) => setQuota(q)}
-      />
+      {historyMounted && (
+        <HistoryDrawer
+          open={historyOpen}
+          reports={history}
+          activeReportId={activeReport?.id ?? null}
+          onClose={() => setHistoryOpen(false)}
+          onSelectReport={(rep) => {
+            handleLoadPreset(rep);
+          }}
+          onDeleteReport={handleDeleteReport}
+        />
+      )}
+
+      {copilotMounted && (
+        <CopilotDrawer
+          key={activeReport?.id ?? "empty"}
+          open={copilotOpen}
+          report={activeReport}
+          onClose={() => setCopilotOpen(false)}
+          onQuotaUpdate={(q) => setQuota(q)}
+        />
+      )}
 
       {toastMessage && (
         <div className="toast" role="status" aria-live="polite">
-          <CheckCircle2 size={15} />
+          <CheckCircle2 size={15} aria-hidden="true" />
           <span>{toastMessage}</span>
         </div>
       )}

@@ -1,4 +1,6 @@
-import { useState } from "react";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
 import type { CustomerOutput } from "@/lib/types";
 import { LoadingBlock } from "./LoadingBlock";
@@ -11,7 +13,7 @@ interface CustomersTabProps {
 
 /**
  * CustomersTab renders dual-sided customer personas, pain points, current workarounds,
- * willingness to pay, and the 5 Mom-Test discovery interview script with one-click clipboard copying.
+ * willingness to pay, and the 5 Mom-Test discovery interview script with clipboard copying.
  *
  * @param props - CustomersTabProps containing customer profiles, visibility, and toast handler.
  * @returns Fully rendered customer discovery tabpanel.
@@ -22,17 +24,31 @@ export function CustomersTab({
   onShowToast,
 }: CustomersTabProps) {
   const [copiedScript, setCopiedScript] = useState(false);
-  const [checkedQuestions, setCheckedQuestions] = useState<Record<number, boolean>>({});
+  const [checkedQuestions, setCheckedQuestions] = useState<
+    Record<number, boolean>
+  >({});
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleCopyScript = () => {
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
+
+  const handleCopyScript = async () => {
     if (!customers) return;
     const text = customers.interviewQuestions
       .map((q, i) => `${i + 1}. ${q}`)
       .join("\n\n");
-    navigator.clipboard.writeText(text);
-    setCopiedScript(true);
-    onShowToast("Discovery interview script copied to clipboard!");
-    setTimeout(() => setCopiedScript(false), 2400);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedScript(true);
+      onShowToast("Discovery interview script copied to clipboard!");
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopiedScript(false), 2400);
+    } catch {
+      onShowToast("Clipboard permission unavailable — please copy manually.");
+    }
   };
 
   return (
@@ -47,8 +63,11 @@ export function CustomersTab({
         <LoadingBlock message="Customer Profiler agent is building ICP personas and discovery scripts..." />
       ) : (
         <div>
+          <h2 className="sr-only">Customer Personas and Discovery Interview Script</h2>
           <div className="hook-callout">
-            <div className="panel-kicker">High-Converting Early Adopter Hook</div>
+            <div className="panel-kicker">
+              High-Converting Early Adopter Hook
+            </div>
             <p
               style={{
                 fontSize: "1.02rem",
@@ -64,8 +83,8 @@ export function CustomersTab({
           </div>
 
           <div className="persona-grid">
-            {customers.personas.map((persona) => (
-              <article key={persona.name} className="persona-card">
+            {customers.personas.map((persona, pIdx) => (
+              <article key={`${persona.name}-${pIdx}`} className="persona-card">
                 <div
                   style={{
                     display: "flex",
@@ -93,9 +112,17 @@ export function CustomersTab({
 
                 <div className="persona-field">
                   <strong>Top Pain Points</strong>
-                  <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
-                    {persona.topPainPoints.map((p) => (
-                      <li key={p}>• {p}</li>
+                  <ul
+                    style={{
+                      listStyle: "none",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "4px",
+                      marginTop: "4px",
+                    }}
+                  >
+                    {persona.topPainPoints.map((p, idx) => (
+                      <li key={`pain-${idx}`}>• {p}</li>
                     ))}
                   </ul>
                 </div>
@@ -107,7 +134,9 @@ export function CustomersTab({
 
                 <div className="persona-field">
                   <strong>Willingness to Pay</strong>
-                  <span style={{ fontWeight: 700, color: "var(--orange-600)" }}>
+                  <span
+                    style={{ fontWeight: 700, color: "var(--orange-700)" }}
+                  >
                     {persona.willingnessToPay}
                   </span>
                 </div>
@@ -115,8 +144,8 @@ export function CustomersTab({
                 <div className="persona-field">
                   <strong>Acquisition Channels</strong>
                   <div className="source-chips" style={{ marginTop: "5px" }}>
-                    {persona.acquisitionChannels.map((ch) => (
-                      <span key={ch} className="tag-pill">
+                    {persona.acquisitionChannels.map((ch, idx) => (
+                      <span key={`ch-${idx}`} className="tag-pill">
                         {ch}
                       </span>
                     ))}
@@ -153,7 +182,7 @@ export function CustomersTab({
                 const checked = Boolean(checkedQuestions[idx]);
                 return (
                   <label
-                    key={q}
+                    key={`iq-${idx}`}
                     className={`checklist-item ${checked ? "checked" : ""}`}
                   >
                     <input

@@ -1,9 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
   BookOpen,
-  Bookmark,
   Clock3,
   Moon,
   Plus,
@@ -11,50 +10,85 @@ import {
   Sun,
   Zap,
 } from "lucide-react";
+import type { ViewMode } from "@/hooks/useStartupAnalysis";
+import { QUOTA_LIMITS } from "@/lib/rate-limit";
+import { scrollElementIntoView } from "@/lib/scroll";
 import type { UsageQuotaInfo } from "@/lib/types";
 
 interface NavbarProps {
   quota: UsageQuotaInfo | null;
   historyCount: number;
   theme: "light" | "dark";
+  viewMode: ViewMode;
   onToggleTheme: () => void;
   onOpenHistory: () => void;
   onResetToHero: () => void;
 }
 
 /**
- * Top navigation bar featuring brand identity, quota indicators, history drawer triggers,
+ * Top navigation bar featuring brand identity, quota indicators, history drawer trigger,
  * theme toggle, and instant 'New Idea' quick action.
  *
- * @param props - NavbarProps containing user quotas, theme, and navigation callbacks.
+ * @param props - NavbarProps containing user quotas, theme, viewMode, and navigation callbacks.
  * @returns Fully rendered header and navigation component.
  */
 export function Navbar({
   quota,
   historyCount,
   theme,
+  viewMode,
   onToggleTheme,
   onOpenHistory,
   onResetToHero,
 }: NavbarProps) {
-  const liveRem = quota?.analysesRemaining ?? 8;
-  const liveLimit = quota?.analysesLimit ?? 8;
-  const scrapeRem = quota?.deepScrapesRemaining ?? 2;
-  const scrapeLimit = quota?.deepScrapesLimit ?? 2;
+  const focusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const examplesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleNewIdea = () => {
-    onResetToHero();
-    window.setTimeout(() => {
+  useEffect(() => {
+    return () => {
+      if (focusTimerRef.current) clearTimeout(focusTimerRef.current);
+      if (examplesTimerRef.current) clearTimeout(examplesTimerRef.current);
+    };
+  }, []);
+
+  const liveRem = quota?.analysesRemaining ?? QUOTA_LIMITS.analysesPerUser;
+  const liveLimit = quota?.analysesLimit ?? QUOTA_LIMITS.analysesPerUser;
+  const scrapeRem =
+    quota?.deepScrapesRemaining ?? QUOTA_LIMITS.deepScrapesPerUser;
+  const scrapeLimit =
+    quota?.deepScrapesLimit ?? QUOTA_LIMITS.deepScrapesPerUser;
+
+  const focusIdeaInput = () => {
+    if (focusTimerRef.current) clearTimeout(focusTimerRef.current);
+    focusTimerRef.current = setTimeout(() => {
       const el = document.getElementById("lp-idea");
       if (el instanceof HTMLTextAreaElement) el.focus();
     }, 60);
   };
 
-  const scrollToExamples = () => {
-    document
-      .getElementById("example-reports-section")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const handleNewIdea = () => {
+    onResetToHero();
+    focusIdeaInput();
   };
+
+  const scrollToExamples = () => {
+    if (viewMode !== "hero") {
+      onResetToHero();
+      if (examplesTimerRef.current) clearTimeout(examplesTimerRef.current);
+      examplesTimerRef.current = setTimeout(() => {
+        scrollElementIntoView(
+          document.getElementById("example-reports-section"),
+          { block: "start" }
+        );
+      }, 60);
+      return;
+    }
+    scrollElementIntoView(document.getElementById("example-reports-section"), {
+      block: "start",
+    });
+  };
+
+  const isHero = viewMode === "hero";
 
   return (
     <header className="global-header lp-header no-print">
@@ -67,7 +101,12 @@ export function Navbar({
           aria-label="SaaSProof home"
         >
           <span className="lp-brand-mark">
-            <Zap size={17} strokeWidth={2.4} fill="currentColor" aria-hidden="true" />
+            <Zap
+              size={17}
+              strokeWidth={2.4}
+              fill="currentColor"
+              aria-hidden="true"
+            />
           </span>
           <span className="lp-brand-name">SaaSProof</span>
         </button>
@@ -75,9 +114,9 @@ export function Navbar({
         <nav className="lp-nav" aria-label="Main navigation">
           <button
             type="button"
-            className="lp-nav-link is-active"
+            className={`lp-nav-link${isHero ? " is-active" : ""}`}
             onClick={onResetToHero}
-            aria-current="page"
+            aria-current={isHero ? "page" : undefined}
           >
             <Search aria-hidden="true" />
             <span>Validate</span>
@@ -87,33 +126,27 @@ export function Navbar({
             type="button"
             className="lp-nav-link"
             onClick={onOpenHistory}
-            aria-label="Open report history"
+            aria-label={`Saved reports (${historyCount})`}
           >
             <Clock3 aria-hidden="true" />
-            <span>History</span>
+            <span>Saved ({historyCount})</span>
           </button>
 
           <button
             type="button"
             className="lp-nav-link"
-            onClick={onOpenHistory}
-            aria-label={`Saved reports (${historyCount})`}
+            onClick={scrollToExamples}
           >
-            <Bookmark aria-hidden="true" />
-            <span>Saved</span>
-            {historyCount > 0 && (
-              <span className="sr-only">{historyCount} saved reports</span>
-            )}
-          </button>
-
-          <button type="button" className="lp-nav-link" onClick={scrollToExamples}>
             <BookOpen aria-hidden="true" />
-            <span>Learn</span>
+            <span>Examples</span>
           </button>
         </nav>
 
         <div className="lp-header-right">
-          <div className="lp-quota-pill" title="Remaining runs and deep scrapes">
+          <div
+            className="lp-quota-pill"
+            title="Remaining runs and deep scrapes"
+          >
             <span className="lp-quota-item">
               <span className="lp-dot lp-dot-amber" aria-hidden="true" />
               {liveRem}/{liveLimit} runs
@@ -144,8 +177,12 @@ export function Navbar({
             type="button"
             className="theme-btn"
             onClick={onToggleTheme}
-            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            aria-label="Toggle color theme"
+            title={
+              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
+            aria-label={
+              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
           >
             {theme === "dark" ? (
               <Sun className="h-4 w-4" aria-hidden="true" />

@@ -6,6 +6,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import type { MarketOutput } from "@/lib/types";
+import { sanitizeSafeUrl } from "@/lib/url";
 import { LoadingBlock } from "./LoadingBlock";
 
 interface MarketTabProps {
@@ -15,7 +16,7 @@ interface MarketTabProps {
 
 /**
  * MarketTab renders bottom-up TAM/SAM/SOM market sizing cards, 3-year outlook,
- * CAGR growth trends, and macro tailwinds and headwinds with source citations.
+ * CAGR growth trends, and macro tailwinds and headwinds with sanitized source citations.
  *
  * @param props - MarketTabProps with market analyst output and visibility state.
  * @returns Fully rendered market sizing tabpanel.
@@ -33,6 +34,7 @@ export function MarketTab({ market, visible }: MarketTabProps) {
         <LoadingBlock message="Market Analyst agent is sizing TAM/SAM/SOM from live web sources..." />
       ) : (
         <div>
+          <h2 className="sr-only">Market Sizing and Macro Dynamics</h2>
           <div className="section-grid-3">
             <div className="tam-card">
               <div className="tam-tier">TAM</div>
@@ -45,7 +47,7 @@ export function MarketTab({ market, visible }: MarketTabProps) {
               <p className="tam-desc">{market.samDetail}</p>
             </div>
             <div className="tam-card highlight-som">
-              <div className="tam-tier" style={{ color: "var(--orange-600)" }}>
+              <div className="tam-tier" style={{ color: "var(--orange-700)" }}>
                 SOM (3Y)
               </div>
               <div className="tam-figure">{market.som}</div>
@@ -74,14 +76,17 @@ export function MarketTab({ market, visible }: MarketTabProps) {
           <div className="section-equal-2">
             <div className="panel-card" style={{ marginBottom: 0 }}>
               <div className="panel-header">
-                <h3 className="panel-title" style={{ color: "var(--emerald-text)" }}>
+                <h3
+                  className="panel-title"
+                  style={{ color: "var(--emerald-text)" }}
+                >
                   <TrendingUp className="h-4 w-4" aria-hidden="true" />
                   <span>Tailwinds</span>
                 </h3>
               </div>
               <ul className="wind-list">
-                {market.tailwinds.map((t) => (
-                  <li key={t}>
+                {market.tailwinds.map((t, idx) => (
+                  <li key={`tw-${idx}`}>
                     <CheckCircle2
                       className="mt-0.5 h-4 w-4 shrink-0"
                       style={{ color: "var(--emerald-text)" }}
@@ -95,14 +100,17 @@ export function MarketTab({ market, visible }: MarketTabProps) {
 
             <div className="panel-card" style={{ marginBottom: 0 }}>
               <div className="panel-header">
-                <h3 className="panel-title" style={{ color: "var(--rose-text)" }}>
+                <h3
+                  className="panel-title"
+                  style={{ color: "var(--rose-text)" }}
+                >
                   <TrendingDown className="h-4 w-4" aria-hidden="true" />
                   <span>Headwinds</span>
                 </h3>
               </div>
               <ul className="wind-list">
-                {market.headwinds.map((h) => (
-                  <li key={h}>
+                {market.headwinds.map((h, idx) => (
+                  <li key={`hw-${idx}`}>
                     <AlertTriangle
                       className="mt-0.5 h-4 w-4 shrink-0"
                       style={{ color: "var(--amber-text)" }}
@@ -118,18 +126,22 @@ export function MarketTab({ market, visible }: MarketTabProps) {
           <div className="panel-card" style={{ marginTop: "20px" }}>
             <div className="panel-kicker">Verified Market Citations</div>
             <div className="source-chips" style={{ marginTop: "10px" }}>
-              {market.sources.map((src) => (
-                <a
-                  key={src.url}
-                  href={src.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="source-link-chip"
-                >
-                  <span>{src.title}</span>
-                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </a>
-              ))}
+              {market.sources.map((src, idx) => {
+                const safeHref = sanitizeSafeUrl(src.url);
+                if (!safeHref) return null;
+                return (
+                  <a
+                    key={`${safeHref}-${idx}`}
+                    href={safeHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="source-link-chip"
+                  >
+                    <span>{src.title}</span>
+                    <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </a>
+                );
+              })}
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import {
   consumeCopilotQuota,
   consumeDeepScrapeQuota,
   getQuotaSnapshot,
+  getRateLimitBucketCount,
   QUOTA_LIMITS,
   resetRateLimits,
 } from "../../lib/rate-limit";
@@ -41,25 +42,47 @@ describe("Security Suite: Rate Limiting & Resource Protection", () => {
     expect(blocked.allowed).toBe(false);
   });
 
-  test("enforces deep scrape bounds per user and globally", () => {
+  test("enforces deep scrape bounds per user and globally across distinct users", () => {
     const userKey = "user_anon_hash_test_scrape";
 
     for (let i = 0; i < QUOTA_LIMITS.deepScrapesPerUser; i++) {
-      const allowed = consumeDeepScrapeQuota(userKey);
-      expect(allowed).toBe(true);
+      expect(consumeDeepScrapeQuota(userKey)).toBe(true);
+    }
+    expect(consumeDeepScrapeQuota(userKey)).toBe(false);
+
+    // Exhaust remaining global daily scrapes across distinct users
+    resetRateLimits();
+    for (let i = 0; i < QUOTA_LIMITS.globalDeepScrapesPerDay; i++) {
+      const distinctUser = `user_${Math.floor(i / QUOTA_LIMITS.deepScrapesPerUser)}`;
+      expect(consumeDeepScrapeQuota(distinctUser)).toBe(true);
     }
 
-    const exceedUser = consumeDeepScrapeQuota(userKey);
-    expect(exceedUser).toBe(false);
+    // Any new user must now be blocked by the global daily cap
+    expect(consumeDeepScrapeQuota("brand_new_user_after_global_cap")).toBe(false);
   });
 
-  test("getQuotaSnapshot reflects fresh quota without consuming tokens", () => {
-    const freshUser = "fresh_user_hash_check";
-    const snapshot = getQuotaSnapshot(freshUser);
+  test("getQuotaSnapshot reflects fresh quota without allocating memory buckets", () => {
+    expect(getRateLimitBucketCount()).toBe(0);
+    const snapshot = getQuotaSnapshot("fresh_user_hash_check");
 
     expect(snapshot.analysesRemaining).toBe(QUOTA_LIMITS.analysesPerUser);
     expect(snapshot.copilotMessagesRemaining).toBe(QUOTA_LIMITS.copilotPerUser);
     expect(snapshot.deepScrapesRemaining).toBe(QUOTA_LIMITS.deepScrapesPerUser);
     expect(snapshot.resetWindowHours).toBe(24);
+    expect(getRateLimitBucketCount()).toBe(0);
+  });
+
+  test("enforces shared IP-level ceiling across cookie rotations", () => {
+    const sharedIpKey = "ip_hash_shared_subnet";
+
+    for (let i = 0; i < QUOTA_LIMITS.analysesPerUser * 2; i++) {
+      const rotatedCookieKey = `user_cookie_${Math.floor(i / QUOTA_LIMITS.analysesPerUser)}_${i}`;
+      const res = consumeAnalysisQuota(rotatedCookieKey, sharedIpKey);
+      expect(res.allowed).toBe(true);
+    }
+
+    const blockedRotation = consumeAnalysisQuota("brand_new_rotated_cookie", sharedIpKey);
+    expect(blockedRotation.allowed).toBe(false);
+    expect(blockedRotation.quota.analysesRemaining).toBe(0);
   });
 });

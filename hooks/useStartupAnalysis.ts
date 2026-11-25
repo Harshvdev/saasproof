@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
+import { scrollToTop } from "@/lib/scroll";
 import {
   StartupReportSchema,
+  UsageQuotaInfoSchema,
   type AnalysisInput,
   type StartupReport,
   type UsageQuotaInfo,
@@ -15,13 +17,9 @@ const THEME_KEY = "saasproof_theme_v1";
 
 export type ViewMode = "hero" | "validating" | "report";
 
-function ensureUserCookie() {
-  if (typeof document === "undefined") return;
-  if (!document.cookie.includes("saasproof_uid=")) {
-    const uid = `sp_${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`;
-    document.cookie = `saasproof_uid=${uid}; path=/; max-age=2592000; SameSite=Lax`;
-  }
-}
+const AnalyzeStatusSchema = z.object({
+  quota: UsageQuotaInfoSchema.optional(),
+});
 
 /**
  * useStartupAnalysis manages full application state, theme preferences,
@@ -38,9 +36,15 @@ export function useStartupAnalysis() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [copilotOpen, setCopilotOpen] = useState(false);
+  const [reportSessionKey, setReportSessionKey] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activeReportRef = useRef<StartupReport | null>(null);
+
+  useEffect(() => {
+    activeReportRef.current = activeReport;
+  }, [activeReport]);
 
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
@@ -70,35 +74,34 @@ export function useStartupAnalysis() {
       setActiveReport(report);
       persistReport(report);
       setViewMode("report");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      scrollToTop();
     },
     [persistReport]
   );
 
+  const handleStreamError = useCallback((msg: string) => {
+    setErrorMessage(msg);
+    if (!activeReportRef.current) {
+      setViewMode("hero");
+    }
+  }, []);
+
   const stream = useAgentStream({
-    onQuotaUpdate: (q) => setQuota(q),
+    onQuotaUpdate: setQuota,
     onAnalysisComplete: handleAnalysisComplete,
-    onError: (msg) => {
-      setErrorMessage(msg);
-      if (!activeReport) {
-        setViewMode("hero");
-      }
-    },
+    onError: handleStreamError,
   });
 
   const { abortStream } = stream;
 
   useEffect(() => {
-    ensureUserCookie();
+    const quotaController = new AbortController();
 
     queueMicrotask(() => {
       try {
-        const activeTheme = document.documentElement.getAttribute("data-theme") as
-          | "light"
-          | "dark"
-          | null;
-        if (activeTheme === "dark" || activeTheme === "light") {
-          setTheme(activeTheme);
+        const attr = document.documentElement.getAttribute("data-theme");
+        if (attr === "dark" || attr === "light") {
+          setTheme(attr);
         } else {
           const savedTheme = localStorage.getItem(THEME_KEY);
           if (savedTheme === "dark" || savedTheme === "light") {
@@ -119,7 +122,7 @@ export function useStartupAnalysis() {
       try {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
-          const raw = JSON.parse(saved);
+          const raw: unknown = JSON.parse(saved);
           const parsed = z.array(StartupReportSchema).safeParse(raw);
           if (parsed.success) {
             setHistory(parsed.data);
@@ -130,25 +133,26 @@ export function useStartupAnalysis() {
       }
     });
 
-    fetch("/api/analyze")
+    fetch("/api/analyze", { signal: quotaController.signal })
       .then((r) => r.json())
-      .then((data: { quota?: UsageQuotaInfo }) => {
-        if (data.quota) setQuota(data.quota);
+      .then((raw: unknown) => {
+        const parsed = AnalyzeStatusSchema.safeParse(raw);
+        if (parsed.success && parsed.data.quota) {
+          setQuota(parsed.data.quota);
+        }
       })
       .catch(() => {});
 
     return () => {
+      quotaController.abort();
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
       abortStream();
     };
   }, [abortStream]);
 
-  const handleToggleTheme = () => {
-    const currentTheme =
-      (document.documentElement.getAttribute("data-theme") as
-        | "light"
-        | "dark"
-        | null) || theme;
+  const handleToggleTheme = useCallback(() => {
+    const attr = document.documentElement.getAttribute("data-theme");
+    const currentTheme = attr === "dark" || attr === "light" ? attr : theme;
     const nextTheme = currentTheme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
     document.documentElement.setAttribute("data-theme", nextTheme);
@@ -157,55 +161,68 @@ export function useStartupAnalysis() {
     } catch {
       // Ignore storage errors
     }
-  };
+  }, [theme]);
 
-  const handleDeleteReport = (id: string) => {
-    setHistory((prev) => {
-      const next = prev.filter((r) => r.id !== id);
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // Ignore
+  const handleDeleteReport = useCallback(
+    (id: string) => {
+      setHistory((prev) => {
+        const next = prev.filter((r) => r.id !== id);
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        } catch {
+          // Ignore
+        }
+        return next;
+      });
+      if (activeReportRef.current?.id === id) {
+        setActiveReport(null);
+        stream.setPartial({});
+        setReportSessionKey((k) => k + 1);
+        setViewMode("hero");
       }
-      return next;
-    });
-    if (activeReport?.id === id) {
-      setActiveReport(null);
+      showToast("Saved dossier deleted");
+    },
+    [showToast, stream]
+  );
+
+  const handleLoadPreset = useCallback(
+    (preset: StartupReport) => {
+      if (stream.isRunning) {
+        stream.abortStream();
+      }
+      setErrorMessage(null);
+      stream.setRunningIdeaText(null);
       stream.setPartial({});
-      setViewMode("hero");
-    }
-    showToast("Saved dossier deleted");
-  };
+      setActiveReport(preset);
+      setReportSessionKey((k) => k + 1);
+      setViewMode("report");
+      scrollToTop();
+    },
+    [stream]
+  );
 
-  const handleLoadPreset = (preset: StartupReport) => {
-    if (stream.isRunning) {
-      stream.abortStream();
-    }
-    setErrorMessage(null);
-    stream.setRunningIdeaText(null);
-    stream.setPartial({});
-    setActiveReport(preset);
-    setViewMode("report");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const handleStartAnalysis = useCallback(
+    (input: AnalysisInput) => {
+      setErrorMessage(null);
+      setActiveReport(null);
+      setReportSessionKey((k) => k + 1);
+      setViewMode("validating");
+      scrollToTop();
+      stream.runLiveAnalysis(input);
+    },
+    [stream]
+  );
 
-  const handleStartAnalysis = (input: AnalysisInput) => {
-    setErrorMessage(null);
-    setActiveReport(null);
-    setViewMode("validating");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    stream.runLiveAnalysis(input);
-  };
-
-  const handleResetToHero = () => {
+  const handleResetToHero = useCallback(() => {
     stream.abortStream();
     setActiveReport(null);
     stream.setPartial({});
     stream.setRunningIdeaText(null);
     setErrorMessage(null);
+    setReportSessionKey((k) => k + 1);
     setViewMode("hero");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+    scrollToTop();
+  }, [stream]);
 
   const hasPartialReport = Boolean(
     activeReport ||
@@ -231,6 +248,7 @@ export function useStartupAnalysis() {
     errorMessage,
     historyOpen,
     copilotOpen,
+    reportSessionKey,
     toastMessage,
     hasPartialReport,
     handleToggleTheme,

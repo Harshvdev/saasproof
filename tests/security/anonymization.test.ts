@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { extractUserKey } from "../../lib/rate-limit";
-import { anonymizeVisitorKey } from "../../lib/security";
+import { extractSessionCookieId, extractUserKey } from "../../lib/rate-limit";
+import { anonymizeVisitorKey, hashIdentifier } from "../../lib/security";
 
 describe("Security Suite: Cryptographic IP Anonymization", () => {
   test("generates a deterministic 64-char SHA-256 hash for raw visitor identifiers", () => {
@@ -54,5 +54,20 @@ describe("Security Suite: Cryptographic IP Anonymization", () => {
     expect(keyA).toMatch(/^[a-f0-9]{64}$/);
     expect(keyB).toMatch(/^[a-f0-9]{64}$/);
     expect(keyA).not.toBe(keyB);
+  });
+
+  test("extractSessionCookieId ignores substring-spoofed cookie names", () => {
+    const req = new Request("https://saasproof.dev/api/analyze", {
+      headers: {
+        cookie: "fake_saasproof_uid=sp_spoofed123456; other=val",
+      },
+    });
+    expect(extractSessionCookieId(req)).toBeNull();
+  });
+
+  test("hashIdentifier deterministically digests secrets without returning plaintext", () => {
+    const digest = hashIdentifier("AIzaSyFakeKey1234567890");
+    expect(digest).toMatch(/^[a-f0-9]{64}$/);
+    expect(digest).not.toContain("AIzaSy");
   });
 });

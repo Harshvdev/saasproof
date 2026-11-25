@@ -1,8 +1,8 @@
 import { Lightbulb } from "lucide-react";
 import type { ValidatorOutput } from "@/lib/types";
 import { LoadingBlock } from "./LoadingBlock";
-import { VerdictGauge } from "./VerdictGauge";
 import { SensitivityCalculator } from "./SensitivityCalculator";
+import { VerdictGauge } from "./VerdictGauge";
 
 interface OverviewTabProps {
   validator?: ValidatorOutput;
@@ -29,6 +29,7 @@ export function OverviewTab({ validator, visible }: OverviewTabProps) {
         <LoadingBlock message="Devil's Advocate agent is calculating viability score and fatal risks..." />
       ) : (
         <div>
+          <h2 className="sr-only">Executive Overview and Viability Scorecard</h2>
           <div className="section-grid-2">
             <div className="panel-card" style={{ marginBottom: 0 }}>
               <div className="panel-kicker">Verdict</div>
@@ -87,7 +88,9 @@ export function OverviewTab({ validator, visible }: OverviewTabProps) {
                   lineHeight: 1.5,
                 }}
               >
-                <strong style={{ color: "var(--text-primary)" }}>Unit Economics: </strong>
+                <strong style={{ color: "var(--text-primary)" }}>
+                  Unit Economics:{" "}
+                </strong>
                 {validator.unitEconomicsNote}
               </div>
             </div>
@@ -97,12 +100,12 @@ export function OverviewTab({ validator, visible }: OverviewTabProps) {
             <div className="panel-header">
               <div>
                 <div className="panel-kicker">Pre-Mortem Analysis</div>
-                <h3 className="panel-title">Top Fatal Risks & Mitigations</h3>
+                <h3 className="panel-title">Top Fatal Risks &amp; Mitigations</h3>
               </div>
             </div>
 
             <div className="section-equal-2" style={{ marginBottom: 0 }}>
-              {validator.fatalRisks.map((risk) => {
+              {validator.fatalRisks.map((risk, idx) => {
                 const sevCls =
                   risk.severity === "Critical"
                     ? "sev-critical"
@@ -110,7 +113,7 @@ export function OverviewTab({ validator, visible }: OverviewTabProps) {
                       ? "sev-high"
                       : "sev-medium";
                 return (
-                  <div key={risk.title} className="risk-card">
+                  <div key={`${risk.title}-${idx}`} className="risk-card">
                     <div className="risk-head">
                       <span className="risk-title">{risk.title}</span>
                       <span className={`severity-badge ${sevCls}`}>
@@ -139,7 +142,7 @@ export function OverviewTab({ validator, visible }: OverviewTabProps) {
               <h3 className="panel-title">
                 <Lightbulb
                   className="h-4 w-4"
-                  style={{ color: "var(--orange-600)" }}
+                  style={{ color: "var(--orange-700)" }}
                   aria-hidden="true"
                 />
                 <span>Pivot Angles</span>
@@ -148,7 +151,7 @@ export function OverviewTab({ validator, visible }: OverviewTabProps) {
 
             <div className="section-equal-2" style={{ marginBottom: 0 }}>
               {validator.pivotSuggestions.map((pivot, i) => (
-                <div key={pivot} className="pivot-card">
+                <div key={`pivot-${i}`} className="pivot-card">
                   <span className="tag-pill mono" style={{ width: "fit-content" }}>
                     Option {i + 1}
                   </span>

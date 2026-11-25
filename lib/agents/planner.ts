@@ -15,7 +15,7 @@ import {
  * Synthesizes research from all previous agents into a tactical, anti-bloat
  * 90-day phased MVP roadmap, must-build vs skip features, and first-10-customers playbook.
  *
- * @param opts - Previous agent outputs and SSE emission callback.
+ * @param opts - Previous agent outputs, optional AbortSignal, and SSE emission callback.
  * @returns Grounded PlannerOutput and execution telemetry.
  */
 export async function runPlannerAgent(opts: {
@@ -24,9 +24,10 @@ export async function runPlannerAgent(opts: {
   competitors: CompetitorOutput;
   customers: CustomerOutput;
   validator: ValidatorOutput;
+  signal?: AbortSignal;
   emit: (event: AgentSSEEvent) => void;
 }): Promise<{ planner: PlannerOutput; provider: string }> {
-  const { framer, market, competitors, customers, validator, emit } = opts;
+  const { framer, market, competitors, customers, validator, signal, emit } = opts;
 
   emit({
     type: "stage",
@@ -47,6 +48,7 @@ Early Adopter Hook: ${customers.earlyAdopterHook}
 
 Create a sharp 90-day execution plan: recommendedWedge (which single niche/city/segment to launch first), monetizationStrategy, mvpFeatures (mustBuild vs skipForNow), 3 phases (Days 1-30, Days 31-60, Days 61-90), and a concrete firstTenCustomersPlaybook.`,
     schema: PlannerOutputSchema,
+    signal,
     schemaHint: `{
   "recommendedWedge": "string",
   "monetizationStrategy": "string",
